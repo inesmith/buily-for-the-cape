@@ -41,8 +41,8 @@ export default function FoundationScreen({ onNext }: FoundationScreenProps) {
   });
 
   if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
-  UIManager.setLayoutAnimationEnabledExperimental(true);
-}
+    UIManager.setLayoutAnimationEnabledExperimental(true);
+  }
 
   useEffect(() => {
     ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
@@ -51,6 +51,19 @@ export default function FoundationScreen({ onNext }: FoundationScreenProps) {
       ScreenOrientation.unlockAsync();
     };
   }, []);
+
+  useEffect(() => {
+    if (selectedOption === correctAnswer && !showFoundation) {
+      setIsAnimatingBuild(true);
+
+      const timer = setTimeout(() => {
+        setShowFoundation(true);
+        setIsAnimatingBuild(false);
+      }, 1500);
+
+      return () => clearTimeout(timer);
+    }
+  }, [selectedOption, showFoundation]);
 
   if (!fontsLoaded) return null;
 
@@ -102,54 +115,54 @@ export default function FoundationScreen({ onNext }: FoundationScreenProps) {
 
           <View style={styles.buildArea}>
             <View style={styles.foundationWrapper}>
-            <FoundationBase width={730} height={370} />
+              {showFoundation && <FoundationBase width={730} height={370} />}
             </View>
             <View style={styles.bottomRow}>
               <View style={styles.hintWrapper}>
                 {showHint && (
-                    <View style={styles.hintExpanded}>
+                  <View style={styles.hintExpanded}>
                     <Text style={styles.hintText}>
-                        Foundations must handle moisture and shifting soil.
+                      Foundations must handle moisture and shifting soil.
                     </Text>
-                    </View>
+                  </View>
                 )}
 
                 <TouchableOpacity
-                    onPress={() => {
+                  onPress={() => {
                     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
                     setShowHint(!showHint);
-                    }}
-                    style={styles.hintButtonOverlay}
+                  }}
+                  style={styles.hintButtonOverlay}
                 >
-                    <View style={styles.hintButton}>
+                  <View style={styles.hintButton}>
                     <Text style={styles.hintIcon}>💡</Text>
-                    </View>
+                  </View>
                 </TouchableOpacity>
-                </View>
+              </View>
 
               <TouchableOpacity
                 onPress={() => {
-                    if (isCorrect) {
+                  if (showFoundation) {
                     onNext();
-                    }
+                  }
                 }}
-                >
+              >
                 <View
+                  style={[
+                    styles.nextButton,
+                    showFoundation && styles.nextButtonActive
+                  ]}
+                >
+                  <Text
                     style={[
-                        styles.nextButton,
-                        isCorrect && styles.nextButtonActive,
+                      styles.nextButtonText,
+                      showFoundation && styles.nextButtonTextActive
                     ]}
-                    >
-                    <Text
-                        style={[
-                            styles.nextButtonText,
-                            isCorrect && styles.nextButtonTextActive,
-                        ]}
-                        >
-                        {isCorrect ? 'Next Level' : 'Level 1'}
-                        </Text>
+                  >
+                    {showFoundation ? 'Next Level' : 'Level 1'}
+                  </Text>
                 </View>
-                </TouchableOpacity>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -256,7 +269,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.14,
     shadowRadius: 6,
     elevation: 5,
-},
+  },
   hintIcon: {
     fontSize: 25,
     justifyContent: 'center',
@@ -274,22 +287,22 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.14,
     shadowRadius: 6,
     elevation: 5,
-},
+  },
   hintText: {
     color: '#F4F1EA',
     fontFamily: 'Quicksand',
     fontSize: 12,
-},
-hintWrapper: {
+  },
+  hintWrapper: {
     position: 'relative',
     justifyContent: 'center',
     marginBottom: -25,
-},
+  },
   hintButtonOverlay: {
     position: 'absolute',
     left: 0,
     zIndex: 2,
-},
+  },
   nextButton: {
     minWidth: 100,
     maxHeight: 50,
@@ -320,17 +333,17 @@ hintWrapper: {
     color: '#8B8178',
   },
   nextButtonActive: {
-  backgroundColor: '#799CB2',
-  borderColor: '#799CB2',
-},
-foundationWrapper: {
-  flex: 1,
-  justifyContent: 'center',
-  alignItems: 'center',
-  marginLeft: -60,
-  marginBottom: -45,
-},
-nextButtonTextActive: {
-  color: '#F4F1EA',
-},
+    backgroundColor: '#799CB2',
+    borderColor: '#799CB2',
+  },
+  foundationWrapper: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: -60,
+    marginBottom: -45,
+  },
+  nextButtonTextActive: {
+    color: '#F4F1EA',
+  },
 });
