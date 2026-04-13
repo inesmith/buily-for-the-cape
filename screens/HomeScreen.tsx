@@ -3,6 +3,7 @@ import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
 import * as ScreenOrientation from 'expo-screen-orientation';
+import { BlurView } from 'expo-blur';
 
 type HomeScreenProps = {
   onStart: () => void;
@@ -47,8 +48,10 @@ export default function HomeScreen({ onStart }: HomeScreenProps) {
           architecture responds to climate
         </Text>
 
-        <TouchableOpacity style={styles.button} onPress={onStart}>
-          <Text style={styles.buttonText}>Start Build</Text>
+        <TouchableOpacity onPress={onStart} style={styles.buttonWrapper}>
+        <BlurView intensity={50} tint="light" style={styles.button}>
+        <Text style={styles.buttonText}>Start Build</Text>
+        </BlurView>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -79,21 +82,28 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: -130,
   },
-  button: {
-    backgroundColor: '#F4F1EA',
-    minWidth: 100,
-    paddingVertical: 13,
-    paddingHorizontal: 30,
-    borderRadius: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.22,
-    shadowRadius: 6,
-    elevation: 6,
+  buttonWrapper: {
     marginTop: 40,
   },
+  button: {
+  overflow: 'hidden', // IMPORTANT for blur
+  backgroundColor: 'rgba(244, 241, 234, 0.25)', // lighter glass
+  minWidth: 100,
+  paddingVertical: 13,
+  paddingHorizontal: 30,
+  borderRadius: 40,
+  alignItems: 'center',
+  justifyContent: 'center',
+
+  borderWidth: 1,
+  borderColor: 'rgba(255,255,255,0.4)', // glass edge highlight
+
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 3 },
+  shadowOpacity: 0.2,
+  shadowRadius: 6,
+  elevation: 6,
+},
   buttonText: {
     fontFamily: 'Quicksand',
     fontSize: 18,

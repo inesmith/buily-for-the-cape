@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Image, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, TouchableOpacity, View, LayoutAnimation, Platform, UIManager, } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
 import * as ScreenOrientation from 'expo-screen-orientation';
@@ -8,6 +8,7 @@ import BrickFoundation from '../assets/foundation-brick.svg';
 import WoodFoundation from '../assets/foundation-wood.svg';
 import ConcreteFoundation from '../assets/foundation-concrete.svg';
 import StoneFoundation from '../assets/foundation-stone.svg';
+import FoundationBase from '../assets/foundation.svg'
 
 type FoundationScreenProps = {
   onNext: () => void;
@@ -30,11 +31,18 @@ const correctAnswer = 'stone';
 
 export default function FoundationScreen({ onNext }: FoundationScreenProps) {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  const [showHint, setShowHint] = useState(false);
+  const [showFoundation, setShowFoundation] = useState(false);
+  const [isAnimatingBuild, setIsAnimatingBuild] = useState(false);
 
   const [fontsLoaded] = useFonts({
     Quicksand: require('../assets/fonts/Quicksand-VariableFont_wght.ttf'),
     MonteCarlo: require('../assets/fonts/MonteCarlo-Regular.ttf'),
   });
+
+  if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
   useEffect(() => {
     ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
@@ -93,28 +101,55 @@ export default function FoundationScreen({ onNext }: FoundationScreenProps) {
           </View>
 
           <View style={styles.buildArea}>
+            <View style={styles.foundationWrapper}>
+            <FoundationBase width={730} height={370} />
+            </View>
             <View style={styles.bottomRow}>
-              <TouchableOpacity style={styles.hintButton}>
-                <Text style={styles.hintIcon}>💡</Text>
-              </TouchableOpacity>
+              <View style={styles.hintWrapper}>
+                {showHint && (
+                    <View style={styles.hintExpanded}>
+                    <Text style={styles.hintText}>
+                        Foundations must handle moisture and shifting soil.
+                    </Text>
+                    </View>
+                )}
+
+                <TouchableOpacity
+                    onPress={() => {
+                    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+                    setShowHint(!showHint);
+                    }}
+                    style={styles.hintButtonOverlay}
+                >
+                    <View style={styles.hintButton}>
+                    <Text style={styles.hintIcon}>💡</Text>
+                    </View>
+                </TouchableOpacity>
+                </View>
 
               <TouchableOpacity
-                style={[
-                  styles.nextButton,
-                  !isCorrect && styles.nextButtonDisabled,
-                ]}
-                onPress={onNext}
-                disabled={!isCorrect}
-              >
-                <Text
-                  style={[
-                    styles.nextButtonText,
-                    !isCorrect && styles.nextButtonTextDisabled,
-                  ]}
+                onPress={() => {
+                    if (isCorrect) {
+                    onNext();
+                    }
+                }}
                 >
-                  Next Level
-                </Text>
-              </TouchableOpacity>
+                <View
+                    style={[
+                        styles.nextButton,
+                        isCorrect && styles.nextButtonActive,
+                    ]}
+                    >
+                    <Text
+                        style={[
+                            styles.nextButtonText,
+                            isCorrect && styles.nextButtonTextActive,
+                        ]}
+                        >
+                        {isCorrect ? 'Next Level' : 'Level 1'}
+                        </Text>
+                </View>
+                </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -147,7 +182,7 @@ const styles = StyleSheet.create({
     marginLeft: 50,
     marginTop: -30,
     marginBottom: 0,
-    backgroundColor: '#F4F1EA',
+    backgroundColor: '#f4f1eac7',
     borderRadius: 28,
     paddingVertical: 24,
     paddingHorizontal: 14,
@@ -210,8 +245,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   hintButton: {
-    width: 66,
-    height: 66,
+    width: 50,
+    height: 50,
     borderRadius: 33,
     backgroundColor: '#AE5037',
     alignItems: 'center',
@@ -220,26 +255,58 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.14,
     shadowRadius: 6,
-    elevation: 4,
-  },
+    elevation: 5,
+},
   hintIcon: {
-    fontSize: 28,
+    fontSize: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
+  hintExpanded: {
+    height: 50,
+    width: 470,
+    backgroundColor: '#AE5037',
+    borderRadius: 40,
+    justifyContent: 'center',
+    paddingHorizontal: 60,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.14,
+    shadowRadius: 6,
+    elevation: 5,
+},
+  hintText: {
+    color: '#F4F1EA',
+    fontFamily: 'Quicksand',
+    fontSize: 12,
+},
+hintWrapper: {
+    position: 'relative',
+    justifyContent: 'center',
+    marginBottom: -25,
+},
+  hintButtonOverlay: {
+    position: 'absolute',
+    left: 0,
+    zIndex: 2,
+},
   nextButton: {
-    minWidth: 210,
-    backgroundColor: '#F4F1EA',
-    borderRadius: 999,
-    paddingVertical: 18,
-    paddingHorizontal: 28,
+    minWidth: 100,
+    maxHeight: 50,
+    backgroundColor: '#f4f1eac7',
+    borderRadius: 40,
+    paddingVertical: 13,
+    paddingHorizontal: 30,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.14,
     shadowRadius: 8,
-    elevation: 4,
+    elevation: 5,
     borderWidth: 1,
-    borderColor: '#F4F1EA',
+    borderColor: '#f4f1eac7',
+    marginBottom: -25,
   },
   nextButtonDisabled: {
     opacity: 0.45,
@@ -252,4 +319,18 @@ const styles = StyleSheet.create({
   nextButtonTextDisabled: {
     color: '#8B8178',
   },
+  nextButtonActive: {
+  backgroundColor: '#799CB2',
+  borderColor: '#799CB2',
+},
+foundationWrapper: {
+  flex: 1,
+  justifyContent: 'center',
+  alignItems: 'center',
+  marginLeft: -60,
+  marginBottom: -45,
+},
+nextButtonTextActive: {
+  color: '#F4F1EA',
+},
 });
