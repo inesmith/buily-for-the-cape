@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
   },
   image: {
     height: 450,
-    marginTop: -75,
+    marginTop: -90,
   },
   subtitle: {
     fontFamily: 'Quicksand',
@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.22,
     shadowRadius: 6,
     elevation: 6,
-    marginTop: 30,
+    marginTop: 40,
   },
   buttonText: {
     fontFamily: 'Quicksand',
