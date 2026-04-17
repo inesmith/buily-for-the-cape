@@ -114,6 +114,10 @@ export default function FoundationScreen({ onNext }: FoundationScreenProps) {
           </View>
 
           <View style={styles.buildArea}>
+            <View style={styles.infoBlock}>
+              <Text style={styles.infoText}></Text>
+            </View>
+
             <View style={styles.foundationWrapper}>
               {showFoundation && <FoundationBase width={730} height={370} />}
             </View>
@@ -251,6 +255,25 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     paddingHorizontal: 28,
     paddingBottom: 26,
+  },
+  infoBlock: {
+    height: 70,
+    marginTop: -30,
+    maxWidth: 500,
+    backgroundColor: '#f4f1eac7',
+    borderRadius: 28,
+    paddingHorizontal: 24,
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.14,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  infoText: {
+    fontFamily: 'Quicksand',
+    fontSize: 14,
+    color: '#53443D',
   },
   bottomRow: {
     flexDirection: 'row',

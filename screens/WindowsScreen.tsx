@@ -8,7 +8,8 @@ import WoodenFames from '../assets/wooden-frame.svg';
 import AluminiumFrames from '../assets/aluminium-frame.svg';
 import FullGlassPanels from '../assets/full-glass.svg';
 import SteelFrames from '../assets/steel-frame.svg';
-import WindowBase from '../assets/windows.svg'
+import WindowBase from '../assets/windows.svg';
+import WallBase from '../assets/wallBase.svg';
 
 type WindowsScreenProps = {
   onNext: () => void;
@@ -34,6 +35,8 @@ const correctAnswer = 'wooden-frames';
 export default function WindowsScreen({ onNext }: WindowsScreenProps) {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [showHint, setShowHint] = useState(false);
+  const [showWindow, setShowWindow] = useState(false);
+  const [isAnimatingBuild, setIsAnimatingBuild] = useState(false);
 
   const [fontsLoaded] = useFonts({
     Quicksand: require('../assets/fonts/Quicksand-VariableFont_wght.ttf'),
@@ -41,8 +44,8 @@ export default function WindowsScreen({ onNext }: WindowsScreenProps) {
   });
 
   if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
-  UIManager.setLayoutAnimationEnabledExperimental(true);
-}
+    UIManager.setLayoutAnimationEnabledExperimental(true);
+  }
 
   useEffect(() => {
     ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
@@ -52,9 +55,20 @@ export default function WindowsScreen({ onNext }: WindowsScreenProps) {
     };
   }, []);
 
-  if (!fontsLoaded) return null;
+  useEffect(() => {
+    if (selectedOption === correctAnswer && !showWindow) {
+      setIsAnimatingBuild(true);
 
-  const isCorrect = selectedOption === correctAnswer;
+      const timer = setTimeout(() => {
+        setShowWindow(true);
+        setIsAnimatingBuild(false);
+      }, 1500);
+
+      return () => clearTimeout(timer);
+    }
+  }, [selectedOption, showWindow]);
+
+  if (!fontsLoaded) return null;
 
   return (
     <View style={{ flex: 1 }}>
@@ -64,7 +78,7 @@ export default function WindowsScreen({ onNext }: WindowsScreenProps) {
         <View style={styles.canvas}>
           <View style={styles.optionCard}>
             <Text style={styles.optionTitle}>
-            Choose the{'\n'}correct wall material
+              Choose the{'\n'}correct window material
             </Text>
 
             {windowOptions.map((option) => {
@@ -101,55 +115,72 @@ export default function WindowsScreen({ onNext }: WindowsScreenProps) {
           </View>
 
           <View style={styles.buildArea}>
-            <View style={styles.windowWrapper}>
-            <WindowBase width={730} height={370} />
+            <View style={styles.infoBlock}>
+              <Text style={styles.infoText}></Text>
             </View>
+
+            <View style={styles.windowWrapper}>
+              {!showWindow && (
+                <View style={styles.wallBasePosition}>
+                  <WallBase width={730} height={377} />
+                </View>
+              )}
+
+              {showWindow && (
+                <View style={StyleSheet.absoluteFillObject}>
+                  <View style={styles.windowPosition}>
+                    <WindowBase width={740} height={384} />
+                  </View>
+                </View>
+              )}
+            </View>
+
             <View style={styles.bottomRow}>
               <View style={styles.hintWrapper}>
                 {showHint && (
-                    <View style={styles.hintExpanded}>
+                  <View style={styles.hintExpanded}>
                     <Text style={styles.hintText}>
-                        Walls help regulate heat and protect the interior from weather.
+                      Windows help with light, ventilation, and temperature control.
                     </Text>
-                    </View>
+                  </View>
                 )}
 
                 <TouchableOpacity
-                    onPress={() => {
+                  onPress={() => {
                     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
                     setShowHint(!showHint);
-                    }}
-                    style={styles.hintButtonOverlay}
+                  }}
+                  style={styles.hintButtonOverlay}
                 >
-                    <View style={styles.hintButton}>
+                  <View style={styles.hintButton}>
                     <Text style={styles.hintIcon}>💡</Text>
-                    </View>
+                  </View>
                 </TouchableOpacity>
-                </View>
+              </View>
 
-                <TouchableOpacity
+              <TouchableOpacity
                 onPress={() => {
-                    if (isCorrect) {
+                  if (showWindow) {
                     onNext();
-                    }
+                  }
                 }}
-                >
+              >
                 <View
+                  style={[
+                    styles.nextButton,
+                    showWindow && styles.nextButtonActive,
+                  ]}
+                >
+                  <Text
                     style={[
-                        styles.nextButton,
-                        isCorrect && styles.nextButtonActive,
+                      styles.nextButtonText,
+                      showWindow && styles.nextButtonTextActive,
                     ]}
-                    >
-                    <Text
-                        style={[
-                            styles.nextButtonText,
-                            isCorrect && styles.nextButtonTextActive,
-                        ]}
-                        >
-                    {isCorrect ? 'Next Level' : 'Level 2'}
-                    </Text>
+                  >
+                    {showWindow ? 'Next Level' : 'Level 3'}
+                  </Text>
                 </View>
-                </TouchableOpacity>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -239,6 +270,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: 28,
     paddingBottom: 26,
   },
+  infoBlock: {
+    height: 70,
+    marginTop: -30,
+    maxWidth: 500,
+    backgroundColor: '#f4f1eac7',
+    borderRadius: 28,
+    paddingHorizontal: 24,
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.14,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  infoText: {
+    fontFamily: 'Quicksand',
+    fontSize: 14,
+    color: '#53443D',
+  },
   bottomRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -256,7 +306,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.14,
     shadowRadius: 6,
     elevation: 5,
-},
+  },
   hintIcon: {
     fontSize: 25,
     justifyContent: 'center',
@@ -274,22 +324,22 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.14,
     shadowRadius: 6,
     elevation: 5,
-},
+  },
   hintText: {
     color: '#F4F1EA',
     fontFamily: 'Quicksand',
     fontSize: 12,
-},
-hintWrapper: {
+  },
+  hintWrapper: {
     position: 'relative',
     justifyContent: 'center',
     marginBottom: -25,
-},
+  },
   hintButtonOverlay: {
     position: 'absolute',
     left: 0,
     zIndex: 2,
-},
+  },
   nextButton: {
     minWidth: 100,
     maxHeight: 50,
@@ -320,17 +370,31 @@ hintWrapper: {
     color: '#8B8178',
   },
   nextButtonActive: {
-  backgroundColor: '#799CB2',
-  borderColor: '#799CB2',
-},
-windowWrapper: {
-  flex: 1,
-  justifyContent: 'center',
-  alignItems: 'center',
-  marginLeft: -60,
-  marginBottom: -45,
-},
-nextButtonTextActive: {
-  color: '#F4F1EA',
-},
+    backgroundColor: '#799CB2',
+    borderColor: '#799CB2',
+  },
+  windowWrapper: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: -60,
+    marginBottom: -45,
+  },
+  wallBasePosition: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: -10,
+    marginLeft: 0,
+  },
+  windowPosition: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: -15,
+    marginLeft: -1,
+  },
+  nextButtonTextActive: {
+    color: '#F4F1EA',
+  },
 });

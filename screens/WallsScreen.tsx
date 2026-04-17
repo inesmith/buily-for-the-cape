@@ -8,7 +8,8 @@ import LimeWashedWalls from '../assets/lime-wall.svg';
 import ConcreteWalls from '../assets/concrete-wall.svg';
 import ExposedStoneWalls from '../assets/exposed-stone-wall.svg';
 import GlassWalls from '../assets/glass-wall.svg';
-import WallBase from '../assets/wallBase.svg'
+import WallBase from '../assets/wallBase.svg';
+import FoundationBase from '../assets/foundation.svg';
 
 type WallsScreenProps = {
   onNext: () => void;
@@ -34,6 +35,8 @@ const correctAnswer = 'lime-washed';
 export default function WallsScreen({ onNext }: WallsScreenProps) {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [showHint, setShowHint] = useState(false);
+  const [showWall, setShowWall] = useState(false);
+  const [isAnimatingBuild, setIsAnimatingBuild] = useState(false);
 
   const [fontsLoaded] = useFonts({
     Quicksand: require('../assets/fonts/Quicksand-VariableFont_wght.ttf'),
@@ -41,8 +44,8 @@ export default function WallsScreen({ onNext }: WallsScreenProps) {
   });
 
   if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
-  UIManager.setLayoutAnimationEnabledExperimental(true);
-}
+    UIManager.setLayoutAnimationEnabledExperimental(true);
+  }
 
   useEffect(() => {
     ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
@@ -52,9 +55,20 @@ export default function WallsScreen({ onNext }: WallsScreenProps) {
     };
   }, []);
 
-  if (!fontsLoaded) return null;
+  useEffect(() => {
+    if (selectedOption === correctAnswer && !showWall) {
+      setIsAnimatingBuild(true);
 
-  const isCorrect = selectedOption === correctAnswer;
+      const timer = setTimeout(() => {
+        setShowWall(true);
+        setIsAnimatingBuild(false);
+      }, 1500);
+
+      return () => clearTimeout(timer);
+    }
+  }, [selectedOption, showWall]);
+
+  if (!fontsLoaded) return null;
 
   return (
     <View style={{ flex: 1 }}>
@@ -64,7 +78,7 @@ export default function WallsScreen({ onNext }: WallsScreenProps) {
         <View style={styles.canvas}>
           <View style={styles.optionCard}>
             <Text style={styles.optionTitle}>
-            Choose the{'\n'}correct wall material
+              Choose the{'\n'}correct wall material
             </Text>
 
             {wallOptions.map((option) => {
@@ -101,55 +115,68 @@ export default function WallsScreen({ onNext }: WallsScreenProps) {
           </View>
 
           <View style={styles.buildArea}>
-            <View style={styles.wallWrapper}>
-            <WallBase width={730} height={370} />
+            <View style={styles.infoBlock}>
+              <Text style={styles.infoText}></Text>
             </View>
+
+            <View style={styles.wallWrapper}>
+              <FoundationBase width={730} height={370} />
+
+              {showWall && (
+                <View style={StyleSheet.absoluteFillObject}>
+                  <View style={styles.wallPosition}>
+                    <WallBase width={736} height={378} />
+                  </View>
+                </View>
+              )}
+            </View>
+
             <View style={styles.bottomRow}>
               <View style={styles.hintWrapper}>
                 {showHint && (
-                    <View style={styles.hintExpanded}>
+                  <View style={styles.hintExpanded}>
                     <Text style={styles.hintText}>
-                        Walls help regulate heat and protect the interior from weather.
+                      Walls help regulate heat and protect the interior from weather.
                     </Text>
-                    </View>
+                  </View>
                 )}
 
                 <TouchableOpacity
-                    onPress={() => {
+                  onPress={() => {
                     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
                     setShowHint(!showHint);
-                    }}
-                    style={styles.hintButtonOverlay}
+                  }}
+                  style={styles.hintButtonOverlay}
                 >
-                    <View style={styles.hintButton}>
+                  <View style={styles.hintButton}>
                     <Text style={styles.hintIcon}>💡</Text>
-                    </View>
+                  </View>
                 </TouchableOpacity>
-                </View>
+              </View>
 
-                <TouchableOpacity
+              <TouchableOpacity
                 onPress={() => {
-                    if (isCorrect) {
+                  if (showWall) {
                     onNext();
-                    }
+                  }
                 }}
-                >
+              >
                 <View
+                  style={[
+                    styles.nextButton,
+                    showWall && styles.nextButtonActive,
+                  ]}
+                >
+                  <Text
                     style={[
-                        styles.nextButton,
-                        isCorrect && styles.nextButtonActive,
+                      styles.nextButtonText,
+                      showWall && styles.nextButtonTextActive,
                     ]}
-                    >
-                    <Text
-                        style={[
-                            styles.nextButtonText,
-                            isCorrect && styles.nextButtonTextActive,
-                        ]}
-                        >
-                    {isCorrect ? 'Next Level' : 'Level 2'}
-                    </Text>
+                  >
+                    {showWall ? 'Next Level' : 'Level 2'}
+                  </Text>
                 </View>
-                </TouchableOpacity>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -239,6 +266,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: 28,
     paddingBottom: 26,
   },
+  infoBlock: {
+    height: 70,
+    marginTop: -30,
+    maxWidth: 500,
+    backgroundColor: '#f4f1eac7',
+    borderRadius: 28,
+    paddingHorizontal: 24,
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.14,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  infoText: {
+    fontFamily: 'Quicksand',
+    fontSize: 14,
+    color: '#53443D',
+  },
   bottomRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -256,7 +302,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.14,
     shadowRadius: 6,
     elevation: 5,
-},
+  },
   hintIcon: {
     fontSize: 25,
     justifyContent: 'center',
@@ -274,22 +320,22 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.14,
     shadowRadius: 6,
     elevation: 5,
-},
+  },
   hintText: {
     color: '#F4F1EA',
     fontFamily: 'Quicksand',
     fontSize: 12,
-},
-hintWrapper: {
+  },
+  hintWrapper: {
     position: 'relative',
     justifyContent: 'center',
     marginBottom: -25,
-},
+  },
   hintButtonOverlay: {
     position: 'absolute',
     left: 0,
     zIndex: 2,
-},
+  },
   nextButton: {
     minWidth: 100,
     maxHeight: 50,
@@ -320,17 +366,24 @@ hintWrapper: {
     color: '#8B8178',
   },
   nextButtonActive: {
-  backgroundColor: '#799CB2',
-  borderColor: '#799CB2',
-},
-wallWrapper: {
-  flex: 1,
-  justifyContent: 'center',
-  alignItems: 'center',
-  marginLeft: -60,
-  marginBottom: -45,
-},
-nextButtonTextActive: {
-  color: '#F4F1EA',
-},
+    backgroundColor: '#799CB2',
+    borderColor: '#799CB2',
+  },
+  wallWrapper: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: -60,
+    marginBottom: -45,
+  },
+  wallPosition: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: -11,
+    marginLeft: -1,
+  },
+  nextButtonTextActive: {
+    color: '#F4F1EA',
+  },
 });

@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "buily-for-the-cape",
-    "slug": "buily-for-the-cape",
+    "name": "Cape Origins",
+    "slug": "cape-origins",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/Cape Origins Logo.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
