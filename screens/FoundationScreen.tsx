@@ -3,6 +3,7 @@ import { Image, Pressable, StyleSheet, Text, TouchableOpacity, View, LayoutAnima
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
 import * as ScreenOrientation from 'expo-screen-orientation';
+import LottieView from 'lottie-react-native';
 
 import BrickFoundation from '../assets/foundation-brick.svg';
 import WoodFoundation from '../assets/foundation-wood.svg';
@@ -34,6 +35,7 @@ export default function FoundationScreen({ onNext }: FoundationScreenProps) {
   const [showHint, setShowHint] = useState(false);
   const [showFoundation, setShowFoundation] = useState(false);
   const [isAnimatingBuild, setIsAnimatingBuild] = useState(false);
+  const [showBuildAnimation, setShowBuildAnimation] = useState(false);
 
   const [fontsLoaded] = useFonts({
     Quicksand: require('../assets/fonts/Quicksand-VariableFont_wght.ttf'),
@@ -53,17 +55,24 @@ export default function FoundationScreen({ onNext }: FoundationScreenProps) {
   }, []);
 
   useEffect(() => {
-    if (selectedOption === correctAnswer && !showFoundation) {
+    if (selectedOption === correctAnswer && !showFoundation && !showBuildAnimation) {
       setIsAnimatingBuild(true);
+      setShowBuildAnimation(true);
+    }
+  }, [selectedOption, showFoundation, showBuildAnimation]);
 
+  // ✅ NEW: control how long animation runs
+  useEffect(() => {
+    if (showBuildAnimation) {
       const timer = setTimeout(() => {
+        setShowBuildAnimation(false);
         setShowFoundation(true);
         setIsAnimatingBuild(false);
-      }, 1500);
+      }, 5000);
 
       return () => clearTimeout(timer);
     }
-  }, [selectedOption, showFoundation]);
+  }, [showBuildAnimation]);
 
   if (!fontsLoaded) return null;
 
@@ -119,8 +128,27 @@ export default function FoundationScreen({ onNext }: FoundationScreenProps) {
             </View>
 
             <View style={styles.foundationWrapper}>
-              {showFoundation && <FoundationBase width={730} height={370} />}
+              {showBuildAnimation && (
+                <LottieView
+                  source={require('../assets/Hammer animation.json')}
+                  autoPlay
+                  loop={true}
+                  speed={0.8}
+                  colorFilters={[
+                    {
+                      keypath: 'Shape Layer 1',
+                      color: '#AE5037',
+                    },
+                  ]}
+                  style={styles.buildAnimation}
+                />
+              )}
+
+              {!showBuildAnimation && showFoundation && (
+                <FoundationBase width={730} height={370} />
+              )}
             </View>
+
             <View style={styles.bottomRow}>
               <View style={styles.hintWrapper}>
                 {showHint && (
@@ -229,9 +257,7 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
     paddingTop: 8,
   },
-  optionItemSelected: {
-
-  },
+  optionItemSelected: {},
   iconWrapper: {
     height: 60,
     justifyContent: 'center',
@@ -295,8 +321,6 @@ const styles = StyleSheet.create({
   },
   hintIcon: {
     fontSize: 25,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   hintExpanded: {
     height: 50,
@@ -365,6 +389,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginLeft: -60,
     marginBottom: -45,
+  },
+  buildAnimation: {
+    width: 180,
+    height: 180,
   },
   nextButtonTextActive: {
     color: '#F4F1EA',
