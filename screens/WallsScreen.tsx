@@ -1,9 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Image, Pressable, StyleSheet, Text, TouchableOpacity, View, LayoutAnimation, Platform, UIManager, } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import LottieView from 'lottie-react-native';
+import { BlurView } from 'expo-blur';
+import * as Haptics from 'expo-haptics';
 
 import LimeWashedWalls from '../assets/lime-wall.svg';
 import ConcreteWalls from '../assets/concrete-wall.svg';
@@ -11,6 +13,13 @@ import ExposedStoneWalls from '../assets/exposed-stone-wall.svg';
 import GlassWalls from '../assets/glass-wall.svg';
 import WallBase from '../assets/wallBase.svg';
 import FoundationBase from '../assets/foundation.svg';
+
+import ConcreteWallChosen from '../assets/concrete-wall-chosen.png';
+import ConcreteWallCracked from '../assets/concrete-wall-cracked.png';
+import ExposedStoneWallChosen from '../assets/exposedstone-wall-chosen.png';
+import ExposedStoneWallCracked from '../assets/exposedstone-wall-cracked.png';
+import GlassWallChosen from '../assets/glass-wall-chosen.png';
+import GlassWallCracked from '../assets/glass-wall-cracked.png';
 
 type WallsScreenProps = {
   onNext: () => void;
@@ -32,6 +41,9 @@ const wallOptions = [
 ];
 
 const correctAnswer = 'lime-washed';
+const BUILD_ANIMATION_DURATION = 5000;
+const FAILURE_TIMER_SECONDS = 3;
+const SUCCESS_DELAY = 1800;
 
 export default function WallsScreen({ onNext }: WallsScreenProps) {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
@@ -39,6 +51,14 @@ export default function WallsScreen({ onNext }: WallsScreenProps) {
   const [showWall, setShowWall] = useState(false);
   const [isAnimatingBuild, setIsAnimatingBuild] = useState(false);
   const [showBuildAnimation, setShowBuildAnimation] = useState(false);
+  const [showCrackedWall, setShowCrackedWall] = useState(false);
+  const [countdown, setCountdown] = useState<number | null>(null);
+  const [showSuccessScreen, setShowSuccessScreen] = useState(false);
+
+  const buildTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const crackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const countdownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const successTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [fontsLoaded] = useFonts({
     Quicksand: require('../assets/fonts/Quicksand-VariableFont_wght.ttf'),
@@ -49,34 +69,135 @@ export default function WallsScreen({ onNext }: WallsScreenProps) {
     UIManager.setLayoutAnimationEnabledExperimental(true);
   }
 
+  const clearAllTimers = () => {
+    if (buildTimeoutRef.current) clearTimeout(buildTimeoutRef.current);
+    if (crackTimeoutRef.current) clearTimeout(crackTimeoutRef.current);
+    if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+    if (successTimeoutRef.current) clearTimeout(successTimeoutRef.current);
+  };
+
   useEffect(() => {
     ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
 
     return () => {
       ScreenOrientation.unlockAsync();
+      clearAllTimers();
     };
   }, []);
 
-  useEffect(() => {
-    if (selectedOption === correctAnswer && !showWall && !showBuildAnimation) {
-      setIsAnimatingBuild(true);
-      setShowBuildAnimation(true);
-    }
-  }, [selectedOption, showWall, showBuildAnimation]);
+  const handleOptionSelect = (optionId: string) => {
+    clearAllTimers();
 
-  useEffect(() => {
-    if (showBuildAnimation) {
-      const timer = setTimeout(() => {
-        setShowBuildAnimation(false);
-        setShowWall(true);
-        setIsAnimatingBuild(false);
-      }, 5000);
+    setSelectedOption(optionId);
+    setShowWall(false);
+    setShowCrackedWall(false);
+    setCountdown(null);
+    setShowSuccessScreen(false);
+    setIsAnimatingBuild(true);
+    setShowBuildAnimation(true);
 
-      return () => clearTimeout(timer);
-    }
-  }, [showBuildAnimation]);
+    buildTimeoutRef.current = setTimeout(() => {
+      setShowBuildAnimation(false);
+      setShowWall(true);
+      setIsAnimatingBuild(false);
+
+      if (optionId === correctAnswer) {
+        successTimeoutRef.current = setTimeout(() => {
+          setShowSuccessScreen(true);
+        }, SUCCESS_DELAY);
+      }
+
+    if (optionId !== correctAnswer) {
+        setCountdown(FAILURE_TIMER_SECONDS);
+
+        countdownIntervalRef.current = setInterval(() => {
+          setCountdown((prev) => {
+            if (prev === null) return null;
+            if (prev <= 1) {
+              if (countdownIntervalRef.current) {
+                clearInterval(countdownIntervalRef.current);
+              }
+              return 0;
+            }
+            return prev - 1;
+          });
+        }, 1000);
+
+        crackTimeoutRef.current = setTimeout(() => {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+          setShowCrackedWall(true);
+          setCountdown(null);
+        }, FAILURE_TIMER_SECONDS * 1000);
+      }
+    }, BUILD_ANIMATION_DURATION);
+  };
 
   if (!fontsLoaded) return null;
+
+  const renderWallImage = () => {
+    if (!selectedOption || !showWall) return null;
+
+    if (selectedOption === 'lime-washed') {
+      return <WallBase width={736} height={378} />;
+    }
+
+    if (selectedOption === 'concrete') {
+      return (
+        <Image
+          source={showCrackedWall ? ConcreteWallCracked : ConcreteWallChosen}
+          style={showCrackedWall ? styles.concreteWallCrackedImage : styles.concreteWallImage}
+          resizeMode="contain"
+        />
+      );
+    }
+
+
+    if (selectedOption === 'exposed-stone') {
+      return (
+        <Image
+          source={showCrackedWall ? ExposedStoneWallCracked : ExposedStoneWallChosen}
+          style={showCrackedWall ? styles.exposedStoneWallCrackedImage : styles.exposedStoneWallImage}
+          resizeMode="contain"
+        />
+      );
+    }
+
+    if (selectedOption === 'glass') {
+      return (
+        <Image
+          source={showCrackedWall ? GlassWallCracked : GlassWallChosen}
+          style={showCrackedWall ? styles.glassWallCrackedImage : styles.glassWallImage}
+          resizeMode="contain"
+        />
+      );
+    }
+
+    return null;
+  };
+
+  if (showSuccessScreen) {
+    return (
+      <SafeAreaView style={styles.successContainer} edges={['left', 'right']}>
+        <View style={styles.successInner}>
+          <View style={{ marginTop: 50, marginBottom: -30 }}>
+            <WallBase width={620} height={300} />
+          </View>
+
+          <Text style={styles.successText}>
+            Thick lime-washed walls helped regulate temperature naturally, keeping interiors cool in
+            the summer heat and warmer through the Cape winter. Their strength was not only in what
+            they supported, but in how they worked with the environment.
+          </Text>
+
+          <TouchableOpacity onPress={onNext} style={styles.successButtonWrapper}>
+            <BlurView intensity={50} tint="light" style={styles.successButton}>
+              <Text style={styles.successButtonText}>Next Level</Text>
+            </BlurView>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <View style={{ flex: 1 }}>
@@ -96,7 +217,7 @@ export default function WallsScreen({ onNext }: WallsScreenProps) {
               return (
                 <Pressable
                   key={option.id}
-                  onPress={() => setSelectedOption(option.id)}
+                  onPress={() => handleOptionSelect(option.id)}
                   style={[
                     styles.optionItem,
                     isSelected && styles.optionItemSelected,
@@ -124,37 +245,36 @@ export default function WallsScreen({ onNext }: WallsScreenProps) {
 
           <View style={styles.buildArea}>
             <View style={styles.infoBlock}>
-              <Text style={styles.infoText}></Text>
+              <Text style={styles.infoText}>
+                With the foundation set, the structure begins to rise...{'\n'}
+                {'\n'}The walls were built thick and solid — not for decoration, but for survival.
+                In the Cape’s shifting climate, these walls kept interiors cool during harsh summers
+                and held warmth through the cold.
+              </Text>
             </View>
 
             <View style={styles.wallWrapper}>
-            {!showBuildAnimation && !showWall && (
+              {!showBuildAnimation && !showWall && (
                 <FoundationBase width={730} height={370} />
-            )}
+              )}
 
-            {showBuildAnimation && (
+              {showBuildAnimation && (
                 <LottieView
-                source={require('../assets/Hammer animation.json')}
-                autoPlay
-                loop={true}
-                speed={0.8}
-                colorFilters={[
+                  source={require('../assets/Hammer animation.json')}
+                  autoPlay
+                  loop={true}
+                  speed={0.8}
+                  colorFilters={[
                     {
-                    keypath: 'Shape Layer 1',
-                    color: '#AE5037',
+                      keypath: 'Shape Layer 1',
+                      color: '#AE5037',
                     },
-                ]}
-                style={styles.buildAnimation}
+                  ]}
+                  style={styles.buildAnimation}
                 />
-            )}
+              )}
 
-            {!showBuildAnimation && showWall && (
-                <View style={StyleSheet.absoluteFillObject}>
-                <View style={styles.wallPosition}>
-                    <WallBase width={736} height={378} />
-                </View>
-                </View>
-            )}
+              {!showBuildAnimation && renderWallImage()}
             </View>
 
             <View style={styles.bottomRow}>
@@ -162,7 +282,8 @@ export default function WallsScreen({ onNext }: WallsScreenProps) {
                 {showHint && (
                   <View style={styles.hintExpanded}>
                     <Text style={styles.hintText}>
-                      Walls help regulate heat and protect the interior from weather.
+                      Consider how a building protects itself from both heat and cold without relying
+                      on modern technology.
                     </Text>
                   </View>
                 )}
@@ -180,27 +301,9 @@ export default function WallsScreen({ onNext }: WallsScreenProps) {
                 </TouchableOpacity>
               </View>
 
-              <TouchableOpacity
-                onPress={() => {
-                  if (showWall) {
-                    onNext();
-                  }
-                }}
-              >
-                <View
-                  style={[
-                    styles.nextButton,
-                    showWall && styles.nextButtonActive,
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.nextButtonText,
-                      showWall && styles.nextButtonTextActive,
-                    ]}
-                  >
-                    {showWall ? 'Next Level' : 'Level 2'}
-                  </Text>
+              <TouchableOpacity activeOpacity={1}>
+                <View style={styles.nextButton}>
+                  <Text style={styles.nextButtonText}>Level 2</Text>
                 </View>
               </TouchableOpacity>
             </View>
@@ -298,9 +401,9 @@ const styles = StyleSheet.create({
     paddingBottom: 26,
   },
   infoBlock: {
-    height: 70,
+    height: 80,
     marginTop: -30,
-    maxWidth: 500,
+    maxWidth: 502,
     backgroundColor: '#f4f1eac7',
     borderRadius: 28,
     paddingHorizontal: 24,
@@ -313,8 +416,10 @@ const styles = StyleSheet.create({
   },
   infoText: {
     fontFamily: 'Quicksand',
-    fontSize: 14,
+    fontSize: 10,
     color: '#53443D',
+    paddingTop: 10,
+    paddingBottom: 10,
   },
   bottomRow: {
     flexDirection: 'row',
@@ -341,7 +446,7 @@ const styles = StyleSheet.create({
   },
   hintExpanded: {
     height: 50,
-    width: 470,
+    width: 500,
     backgroundColor: '#AE5037',
     borderRadius: 40,
     justifyContent: 'center',
@@ -385,20 +490,10 @@ const styles = StyleSheet.create({
     borderColor: '#f4f1eac7',
     marginBottom: -25,
   },
-  nextButtonDisabled: {
-    opacity: 0.45,
-  },
   nextButtonText: {
     fontFamily: 'Quicksand',
     fontSize: 18,
     color: '#53443D',
-  },
-  nextButtonTextDisabled: {
-    color: '#8B8178',
-  },
-  nextButtonActive: {
-    backgroundColor: '#799CB2',
-    borderColor: '#799CB2',
   },
   wallWrapper: {
     flex: 1,
@@ -406,19 +501,91 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginLeft: -60,
     marginBottom: -45,
+    position: 'relative',
   },
-  wallPosition: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: -11,
-    marginLeft: -1,
+  concreteWallImage: {
+    width: 736,
+    height: 378,
+    marginTop: 0,
+    marginLeft: 0,
+  },
+  concreteWallCrackedImage: {
+    width: 736,
+    height: 378,
+    marginTop: 0,
+    marginLeft: 0,
+  },
+  exposedStoneWallImage: {
+    width: 736,
+    height: 378,
+    marginTop: 0,
+    marginLeft: 0,
+  },
+  exposedStoneWallCrackedImage: {
+    width: 736,
+    height: 378,
+    marginTop: 0,
+    marginLeft: 0,
+  },
+  glassWallImage: {
+    width: 736,
+    height: 378,
+    marginTop: 0,
+    marginLeft: 0,
+  },
+  glassWallCrackedImage: {
+    width: 736,
+    height: 378,
+    marginTop: 0,
+    marginLeft: 0,
   },
   buildAnimation: {
     width: 180,
     height: 180,
   },
-  nextButtonTextActive: {
+  successContainer: {
+    flex: 1,
+    backgroundColor: '#605C39',
+  },
+  successInner: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 40,
+    marginTop: -100,
+  },
+  successText: {
+    fontFamily: 'Quicksand',
+    fontSize: 18,
+    lineHeight: 28,
     color: '#F4F1EA',
+    textAlign: 'center',
+    maxWidth: 760,
+  },
+  successButtonWrapper: {
+    marginTop: 35,
+  },
+  successButton: {
+    overflow: 'hidden',
+    backgroundColor: 'rgba(244, 241, 234, 0.25)',
+    minWidth: 100,
+    paddingVertical: 13,
+    paddingHorizontal: 30,
+    borderRadius: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.4)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 6,
+  },
+  successButtonText: {
+    fontFamily: 'Quicksand',
+    fontSize: 18,
+    color: '#605C39',
+    fontWeight: '500',
   },
 });

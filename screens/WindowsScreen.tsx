@@ -1,9 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Image, Pressable, StyleSheet, Text, TouchableOpacity, View, LayoutAnimation, Platform, UIManager, } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import LottieView from 'lottie-react-native';
+import { BlurView } from 'expo-blur';
+import * as Haptics from 'expo-haptics';
 
 import WoodenFames from '../assets/wooden-frame.svg';
 import AluminiumFrames from '../assets/aluminium-frame.svg';
@@ -11,6 +13,13 @@ import FullGlassPanels from '../assets/full-glass.svg';
 import SteelFrames from '../assets/steel-frame.svg';
 import WindowBase from '../assets/windows.svg';
 import WallBase from '../assets/wallBase.svg';
+
+import AluminiumFramesChosen from '../assets/aluminium-frames-chosen.png';
+import AluminiumFramesCracked from '../assets/aluminium-frames-cracked.png';
+import FullGlassChosen from '../assets/full-glass-chosen.png';
+import FullGlassCracked from '../assets/full-glass-cracked.png';
+import SteelFramesChosen from '../assets/steel-frames-chosen.png';
+import SteelFramesCracked from '../assets/steel-frames-cracked.png';
 
 type WindowsScreenProps = {
   onNext: () => void;
@@ -32,6 +41,9 @@ const windowOptions = [
 ];
 
 const correctAnswer = 'wooden-frames';
+const BUILD_ANIMATION_DURATION = 5000;
+const FAILURE_TIMER_SECONDS = 3;
+const SUCCESS_DELAY = 1800;
 
 export default function WindowsScreen({ onNext }: WindowsScreenProps) {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
@@ -39,6 +51,14 @@ export default function WindowsScreen({ onNext }: WindowsScreenProps) {
   const [showWindow, setShowWindow] = useState(false);
   const [isAnimatingBuild, setIsAnimatingBuild] = useState(false);
   const [showBuildAnimation, setShowBuildAnimation] = useState(false);
+  const [showCrackedWindow, setShowCrackedWindow] = useState(false);
+  const [countdown, setCountdown] = useState<number | null>(null);
+  const [showSuccessScreen, setShowSuccessScreen] = useState(false);
+
+  const buildTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const crackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const countdownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const successTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [fontsLoaded] = useFonts({
     Quicksand: require('../assets/fonts/Quicksand-VariableFont_wght.ttf'),
@@ -49,34 +69,134 @@ export default function WindowsScreen({ onNext }: WindowsScreenProps) {
     UIManager.setLayoutAnimationEnabledExperimental(true);
   }
 
+  const clearAllTimers = () => {
+    if (buildTimeoutRef.current) clearTimeout(buildTimeoutRef.current);
+    if (crackTimeoutRef.current) clearTimeout(crackTimeoutRef.current);
+    if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+    if (successTimeoutRef.current) clearTimeout(successTimeoutRef.current);
+  };
+
   useEffect(() => {
     ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
 
     return () => {
       ScreenOrientation.unlockAsync();
+      clearAllTimers();
     };
   }, []);
 
-  useEffect(() => {
-    if (selectedOption === correctAnswer && !showWindow && !showBuildAnimation) {
-      setIsAnimatingBuild(true);
-      setShowBuildAnimation(true);
-    }
-  }, [selectedOption, showWindow, showBuildAnimation]);
+  const handleOptionSelect = (optionId: string) => {
+    clearAllTimers();
 
-  useEffect(() => {
-    if (showBuildAnimation) {
-      const timer = setTimeout(() => {
-        setShowBuildAnimation(false);
-        setShowWindow(true);
-        setIsAnimatingBuild(false);
-      }, 5000);
+    setSelectedOption(optionId);
+    setShowWindow(false);
+    setShowCrackedWindow(false);
+    setCountdown(null);
+    setShowSuccessScreen(false);
+    setIsAnimatingBuild(true);
+    setShowBuildAnimation(true);
 
-      return () => clearTimeout(timer);
-    }
-  }, [showBuildAnimation]);
+    buildTimeoutRef.current = setTimeout(() => {
+      setShowBuildAnimation(false);
+      setShowWindow(true);
+      setIsAnimatingBuild(false);
+
+      if (optionId === correctAnswer) {
+        successTimeoutRef.current = setTimeout(() => {
+          setShowSuccessScreen(true);
+        }, SUCCESS_DELAY);
+      }
+
+      if (optionId !== correctAnswer) {
+        setCountdown(FAILURE_TIMER_SECONDS);
+
+        countdownIntervalRef.current = setInterval(() => {
+          setCountdown((prev) => {
+            if (prev === null) return null;
+            if (prev <= 1) {
+              if (countdownIntervalRef.current) {
+                clearInterval(countdownIntervalRef.current);
+              }
+              return 0;
+            }
+            return prev - 1;
+          });
+        }, 1000);
+
+        crackTimeoutRef.current = setTimeout(() => {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+          setShowCrackedWindow(true);
+          setCountdown(null);
+        }, FAILURE_TIMER_SECONDS * 1000);
+      }
+    }, BUILD_ANIMATION_DURATION);
+  };
 
   if (!fontsLoaded) return null;
+
+  const renderWindowImage = () => {
+    if (!selectedOption || !showWindow) return null;
+
+    if (selectedOption === 'wooden-frames') {
+      return <WindowBase width={740} height={384} />;
+    }
+
+    if (selectedOption === 'aluminium-frames') {
+      return (
+        <Image
+          source={showCrackedWindow ? AluminiumFramesCracked : AluminiumFramesChosen}
+          style={showCrackedWindow ? styles.aluminiumWindowCrackedImage : styles.aluminiumWindowImage}
+          resizeMode="contain"
+        />
+      );
+    }
+
+    if (selectedOption === 'glass-panels') {
+      return (
+        <Image
+          source={showCrackedWindow ? FullGlassCracked : FullGlassChosen}
+          style={showCrackedWindow ? styles.fullGlassCrackedImage : styles.fullGlassImage}
+          resizeMode="contain"
+        />
+      );
+    }
+
+    if (selectedOption === 'steel-frames') {
+      return (
+        <Image
+          source={showCrackedWindow ? SteelFramesCracked : SteelFramesChosen}
+          style={showCrackedWindow ? styles.steelFramesCrackedImage : styles.steelFramesImage}
+          resizeMode="contain"
+        />
+      );
+    }
+
+    return null;
+  };
+
+  if (showSuccessScreen) {
+    return (
+      <SafeAreaView style={styles.successContainer} edges={['left', 'right']}>
+        <View style={styles.successInner}>
+          <View style={{ marginTop: 50, marginBottom: -30 }}>
+            <WindowBase width={620} height={300} />
+          </View>
+
+          <Text style={styles.successText}>
+            Wooden window frames offered balance — durable enough for the climate, yet practical to
+            shape and repair. Positioned carefully, these openings welcomed light and airflow while
+            protecting the home from harsher weather beyond.
+          </Text>
+
+          <TouchableOpacity onPress={onNext} style={styles.successButtonWrapper}>
+            <BlurView intensity={50} tint="light" style={styles.successButton}>
+              <Text style={styles.successButtonText}>Next Level</Text>
+            </BlurView>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <View style={{ flex: 1 }}>
@@ -96,7 +216,7 @@ export default function WindowsScreen({ onNext }: WindowsScreenProps) {
               return (
                 <Pressable
                   key={option.id}
-                  onPress={() => setSelectedOption(option.id)}
+                  onPress={() => handleOptionSelect(option.id)}
                   style={[
                     styles.optionItem,
                     isSelected && styles.optionItemSelected,
@@ -124,7 +244,11 @@ export default function WindowsScreen({ onNext }: WindowsScreenProps) {
 
           <View style={styles.buildArea}>
             <View style={styles.infoBlock}>
-              <Text style={styles.infoText}></Text>
+              <Text style={styles.infoText}>
+                As the walls closed in, openings became essential.{'\n'}
+                {'\n'}Windows were carefully placed — not just to frame views, but to guide light and
+                air through the home.
+              </Text>
             </View>
 
             <View style={styles.windowWrapper}>
@@ -150,13 +274,7 @@ export default function WindowsScreen({ onNext }: WindowsScreenProps) {
                 />
               )}
 
-              {!showBuildAnimation && showWindow && (
-                <View style={StyleSheet.absoluteFillObject}>
-                  <View style={styles.windowPosition}>
-                    <WindowBase width={740} height={384} />
-                  </View>
-                </View>
-              )}
+              {!showBuildAnimation && renderWindowImage()}
             </View>
 
             <View style={styles.bottomRow}>
@@ -164,7 +282,8 @@ export default function WindowsScreen({ onNext }: WindowsScreenProps) {
                 {showHint && (
                   <View style={styles.hintExpanded}>
                     <Text style={styles.hintText}>
-                      Windows help with light, ventilation, and temperature control.
+                      These openings do more than let you see outside — think about light, airflow,
+                      and daily life before electricity.
                     </Text>
                   </View>
                 )}
@@ -182,27 +301,9 @@ export default function WindowsScreen({ onNext }: WindowsScreenProps) {
                 </TouchableOpacity>
               </View>
 
-              <TouchableOpacity
-                onPress={() => {
-                  if (showWindow) {
-                    onNext();
-                  }
-                }}
-              >
-                <View
-                  style={[
-                    styles.nextButton,
-                    showWindow && styles.nextButtonActive,
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.nextButtonText,
-                      showWindow && styles.nextButtonTextActive,
-                    ]}
-                  >
-                    {showWindow ? 'Next Level' : 'Level 3'}
-                  </Text>
+              <TouchableOpacity activeOpacity={1}>
+                <View style={styles.nextButton}>
+                  <Text style={styles.nextButtonText}>Level 3</Text>
                 </View>
               </TouchableOpacity>
             </View>
@@ -300,9 +401,9 @@ const styles = StyleSheet.create({
     paddingBottom: 26,
   },
   infoBlock: {
-    height: 70,
+    height: 80,
     marginTop: -30,
-    maxWidth: 500,
+    maxWidth: 502,
     backgroundColor: '#f4f1eac7',
     borderRadius: 28,
     paddingHorizontal: 24,
@@ -315,8 +416,10 @@ const styles = StyleSheet.create({
   },
   infoText: {
     fontFamily: 'Quicksand',
-    fontSize: 14,
+    fontSize: 10,
     color: '#53443D',
+    paddingTop: 10,
+    paddingBottom: 10,
   },
   bottomRow: {
     flexDirection: 'row',
@@ -343,7 +446,7 @@ const styles = StyleSheet.create({
   },
   hintExpanded: {
     height: 50,
-    width: 470,
+    width: 500,
     backgroundColor: '#AE5037',
     borderRadius: 40,
     justifyContent: 'center',
@@ -387,20 +490,10 @@ const styles = StyleSheet.create({
     borderColor: '#f4f1eac7',
     marginBottom: -25,
   },
-  nextButtonDisabled: {
-    opacity: 0.45,
-  },
   nextButtonText: {
     fontFamily: 'Quicksand',
     fontSize: 18,
     color: '#53443D',
-  },
-  nextButtonTextDisabled: {
-    color: '#8B8178',
-  },
-  nextButtonActive: {
-    backgroundColor: '#799CB2',
-    borderColor: '#799CB2',
   },
   windowWrapper: {
     flex: 1,
@@ -408,26 +501,98 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginLeft: -60,
     marginBottom: -45,
+    position: 'relative',
   },
   wallBasePosition: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: -10,
+    marginTop: -11,
+    marginLeft: -1,
+  },
+  aluminiumWindowImage: {
+    width: 740,
+    height: 384,
+    marginTop: 0,
     marginLeft: 0,
   },
-  windowPosition: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: -15,
-    marginLeft: -1,
+  aluminiumWindowCrackedImage: {
+    width: 740,
+    height: 384,
+    marginTop: 0,
+    marginLeft: 0,
+  },
+  fullGlassImage: {
+    width: 740,
+    height: 384,
+    marginTop: 0,
+    marginLeft: 0,
+  },
+  fullGlassCrackedImage: {
+    width: 740,
+    height: 384,
+    marginTop: 0,
+    marginLeft: 0,
+  },
+  steelFramesImage: {
+    width: 740,
+    height: 384,
+    marginTop: 0,
+    marginLeft: 0,
+  },
+  steelFramesCrackedImage: {
+    width: 740,
+    height: 384,
+    marginTop: 0,
+    marginLeft: 0,
   },
   buildAnimation: {
     width: 180,
     height: 180,
   },
-  nextButtonTextActive: {
+  successContainer: {
+    flex: 1,
+    backgroundColor: '#605C39',
+  },
+  successInner: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 40,
+    marginTop: -100,
+  },
+  successText: {
+    fontFamily: 'Quicksand',
+    fontSize: 18,
+    lineHeight: 28,
     color: '#F4F1EA',
+    textAlign: 'center',
+    maxWidth: 760,
+  },
+  successButtonWrapper: {
+    marginTop: 35,
+  },
+  successButton: {
+    overflow: 'hidden',
+    backgroundColor: 'rgba(244, 241, 234, 0.25)',
+    minWidth: 100,
+    paddingVertical: 13,
+    paddingHorizontal: 30,
+    borderRadius: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.4)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 6,
+  },
+  successButtonText: {
+    fontFamily: 'Quicksand',
+    fontSize: 18,
+    color: '#605C39',
+    fontWeight: '500',
   },
 });

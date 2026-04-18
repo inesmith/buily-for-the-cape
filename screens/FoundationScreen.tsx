@@ -4,6 +4,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import LottieView from 'lottie-react-native';
+import { BlurView } from 'expo-blur';
+import * as Haptics from 'expo-haptics';
 
 import BrickFoundation from '../assets/foundation-brick.svg';
 import WoodFoundation from '../assets/foundation-wood.svg';
@@ -26,6 +28,8 @@ type FoundationOption = {
   id: string;
   label: string;
   image: any;
+  width?: number;
+  height?: number;
 };
 
 const foundationOptions = [
@@ -38,6 +42,7 @@ const foundationOptions = [
 const correctAnswer = 'stone';
 const BUILD_ANIMATION_DURATION = 5000;
 const FAILURE_TIMER_SECONDS = 3;
+const SUCCESS_DELAY = 1800;
 
 export default function FoundationScreen({ onNext }: FoundationScreenProps) {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
@@ -47,10 +52,12 @@ export default function FoundationScreen({ onNext }: FoundationScreenProps) {
   const [showBuildAnimation, setShowBuildAnimation] = useState(false);
   const [showCrackedFoundation, setShowCrackedFoundation] = useState(false);
   const [countdown, setCountdown] = useState<number | null>(null);
+  const [showSuccessScreen, setShowSuccessScreen] = useState(false);
 
   const buildTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const crackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const countdownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const successTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [fontsLoaded] = useFonts({
     Quicksand: require('../assets/fonts/Quicksand-VariableFont_wght.ttf'),
@@ -65,6 +72,7 @@ export default function FoundationScreen({ onNext }: FoundationScreenProps) {
     if (buildTimeoutRef.current) clearTimeout(buildTimeoutRef.current);
     if (crackTimeoutRef.current) clearTimeout(crackTimeoutRef.current);
     if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+    if (successTimeoutRef.current) clearTimeout(successTimeoutRef.current);
   };
 
   useEffect(() => {
@@ -83,6 +91,7 @@ export default function FoundationScreen({ onNext }: FoundationScreenProps) {
     setShowFoundation(false);
     setShowCrackedFoundation(false);
     setCountdown(null);
+    setShowSuccessScreen(false);
     setIsAnimatingBuild(true);
     setShowBuildAnimation(true);
 
@@ -90,6 +99,12 @@ export default function FoundationScreen({ onNext }: FoundationScreenProps) {
       setShowBuildAnimation(false);
       setShowFoundation(true);
       setIsAnimatingBuild(false);
+
+      if (optionId === correctAnswer) {
+        successTimeoutRef.current = setTimeout(() => {
+          setShowSuccessScreen(true);
+        }, SUCCESS_DELAY);
+      }
 
       if (optionId !== correctAnswer) {
         setCountdown(FAILURE_TIMER_SECONDS);
@@ -108,8 +123,9 @@ export default function FoundationScreen({ onNext }: FoundationScreenProps) {
         }, 1000);
 
         crackTimeoutRef.current = setTimeout(() => {
-          setShowCrackedFoundation(true);
-          setCountdown(null);
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+        setShowCrackedFoundation(true);
+        setCountdown(null);
         }, FAILURE_TIMER_SECONDS * 1000);
       }
     }, BUILD_ANIMATION_DURATION);
@@ -159,11 +175,38 @@ export default function FoundationScreen({ onNext }: FoundationScreenProps) {
     return null;
   };
 
-  const canGoNext =
-    selectedOption === correctAnswer &&
-    showFoundation &&
-    !showBuildAnimation &&
-    !showCrackedFoundation;
+  if (showSuccessScreen) {
+  return (
+    <SafeAreaView style={styles.successContainer} edges={['left', 'right']}>
+      <View style={styles.successInner}>
+
+        {/* foundation image */}
+        <View style={{ marginTop: 50, marginBottom: -30 }}>
+          <FoundationBase width={600} height={260} />
+        </View>
+
+        <Text style={styles.successText}>
+          Stone and local materials were chosen to anchor the building firmly into the earth,
+          protecting it from shifting ground and seasonal change. What lies below is what allows
+          everything above to endure.
+        </Text>
+
+        <TouchableOpacity onPress={onNext} style={styles.successButtonWrapper}>
+          <BlurView intensity={50} tint="light" style={styles.successButton}>
+            <Text style={styles.successButtonText}>Next Level</Text>
+          </BlurView>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
+  );
+}
+
+
+  //const canGoNext =
+  //selectedOption === correctAnswer &&
+  //showFoundation &&
+  //!showBuildAnimation &&
+  //!showCrackedFoundation;
 
   return (
     <View style={{ flex: 1 }}>
@@ -211,7 +254,11 @@ export default function FoundationScreen({ onNext }: FoundationScreenProps) {
 
           <View style={styles.buildArea}>
             <View style={styles.infoBlock}>
-              <Text style={styles.infoText}></Text>
+              <Text style={styles.infoText}>
+                Before the walls could rise, the land had to be understood.
+                Groot Constantia was built on soil shaped by time, wind, and rain — and every decision began beneath the surface.  
+                The foundation was not just about strength, but working with the environment, not against it.
+              </Text>
             </View>
 
             <View style={styles.foundationWrapper}>
@@ -237,11 +284,7 @@ export default function FoundationScreen({ onNext }: FoundationScreenProps) {
                 showFoundation &&
                 selectedOption !== correctAnswer &&
                 !showCrackedFoundation &&
-                countdown !== null && (
-                  <View style={styles.timerBubble}>
-                    <Text style={styles.timerText}>{countdown}</Text>
-                  </View>
-                )}
+                countdown !== null && null}
             </View>
 
             <View style={styles.bottomRow}>
@@ -249,7 +292,7 @@ export default function FoundationScreen({ onNext }: FoundationScreenProps) {
                 {showHint && (
                   <View style={styles.hintExpanded}>
                     <Text style={styles.hintText}>
-                      Foundations must handle moisture and shifting soil.
+                      Think about what lies beneath — what kind of material would stay strong even when the ground shifts and moisture rises?
                     </Text>
                   </View>
                 )}
@@ -267,27 +310,9 @@ export default function FoundationScreen({ onNext }: FoundationScreenProps) {
                 </TouchableOpacity>
               </View>
 
-              <TouchableOpacity
-                onPress={() => {
-                  if (canGoNext) {
-                    onNext();
-                  }
-                }}
-              >
-                <View
-                  style={[
-                    styles.nextButton,
-                    canGoNext && styles.nextButtonActive
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.nextButtonText,
-                      canGoNext && styles.nextButtonTextActive
-                    ]}
-                  >
-                    {canGoNext ? 'Next Level' : 'Level 1'}
-                  </Text>
+              <TouchableOpacity activeOpacity={1}>
+                <View style={styles.nextButton}>
+                  <Text style={styles.nextButtonText}>Level 1</Text>
                 </View>
               </TouchableOpacity>
             </View>
@@ -385,9 +410,9 @@ const styles = StyleSheet.create({
     paddingBottom: 26,
   },
   infoBlock: {
-    height: 70,
+    height: 80,
     marginTop: -30,
-    maxWidth: 500,
+    maxWidth: 502,
     backgroundColor: '#f4f1eac7',
     borderRadius: 28,
     paddingHorizontal: 24,
@@ -400,8 +425,10 @@ const styles = StyleSheet.create({
   },
   infoText: {
     fontFamily: 'Quicksand',
-    fontSize: 14,
+    fontSize: 10,
     color: '#53443D',
+    paddingTop: 10,
+    paddingBottom: 10,
   },
   bottomRow: {
     flexDirection: 'row',
@@ -426,7 +453,7 @@ const styles = StyleSheet.create({
   },
   hintExpanded: {
     height: 50,
-    width: 470,
+    width: 500,
     backgroundColor: '#AE5037',
     borderRadius: 40,
     justifyContent: 'center',
@@ -470,20 +497,10 @@ const styles = StyleSheet.create({
     borderColor: '#f4f1eac7',
     marginBottom: -25,
   },
-  nextButtonDisabled: {
-    opacity: 0.45,
-  },
   nextButtonText: {
     fontFamily: 'Quicksand',
     fontSize: 18,
     color: '#53443D',
-  },
-  nextButtonTextDisabled: {
-    color: '#8B8178',
-  },
-  nextButtonActive: {
-    backgroundColor: '#799CB2',
-    borderColor: '#799CB2',
   },
   foundationWrapper: {
     flex: 1,
@@ -554,7 +571,49 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: '#F4F1EA',
   },
-  nextButtonTextActive: {
+  successContainer: {
+    flex: 1,
+    backgroundColor: '#605C39',
+  },
+  successInner: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 40,
+    marginTop: -100,
+  },
+  successText: {
+    fontFamily: 'Quicksand',
+    fontSize: 18,
+    lineHeight: 28,
     color: '#F4F1EA',
+    textAlign: 'center',
+    maxWidth: 760,
+  },
+  successButtonWrapper: {
+    marginTop: 35,
+  },
+  successButton: {
+    overflow: 'hidden',
+    backgroundColor: 'rgba(244, 241, 234, 0.25)',
+    minWidth: 100,
+    paddingVertical: 13,
+    paddingHorizontal: 30,
+    borderRadius: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.4)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 6,
+  },
+  successButtonText: {
+    fontFamily: 'Quicksand',
+    fontSize: 18,
+    color: '#605C39',
+    fontWeight: '500',
   },
 });
