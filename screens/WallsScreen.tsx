@@ -3,6 +3,7 @@ import { Image, Pressable, StyleSheet, Text, TouchableOpacity, View, LayoutAnima
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
 import * as ScreenOrientation from 'expo-screen-orientation';
+import LottieView from 'lottie-react-native';
 
 import LimeWashedWalls from '../assets/lime-wall.svg';
 import ConcreteWalls from '../assets/concrete-wall.svg';
@@ -37,6 +38,7 @@ export default function WallsScreen({ onNext }: WallsScreenProps) {
   const [showHint, setShowHint] = useState(false);
   const [showWall, setShowWall] = useState(false);
   const [isAnimatingBuild, setIsAnimatingBuild] = useState(false);
+  const [showBuildAnimation, setShowBuildAnimation] = useState(false);
 
   const [fontsLoaded] = useFonts({
     Quicksand: require('../assets/fonts/Quicksand-VariableFont_wght.ttf'),
@@ -56,17 +58,23 @@ export default function WallsScreen({ onNext }: WallsScreenProps) {
   }, []);
 
   useEffect(() => {
-    if (selectedOption === correctAnswer && !showWall) {
+    if (selectedOption === correctAnswer && !showWall && !showBuildAnimation) {
       setIsAnimatingBuild(true);
+      setShowBuildAnimation(true);
+    }
+  }, [selectedOption, showWall, showBuildAnimation]);
 
+  useEffect(() => {
+    if (showBuildAnimation) {
       const timer = setTimeout(() => {
+        setShowBuildAnimation(false);
         setShowWall(true);
         setIsAnimatingBuild(false);
-      }, 1500);
+      }, 5000);
 
       return () => clearTimeout(timer);
     }
-  }, [selectedOption, showWall]);
+  }, [showBuildAnimation]);
 
   if (!fontsLoaded) return null;
 
@@ -78,7 +86,7 @@ export default function WallsScreen({ onNext }: WallsScreenProps) {
         <View style={styles.canvas}>
           <View style={styles.optionCard}>
             <Text style={styles.optionTitle}>
-              Choose the{'\n'}correct wall material
+              Select the{'\n'}correct wall material
             </Text>
 
             {wallOptions.map((option) => {
@@ -120,15 +128,33 @@ export default function WallsScreen({ onNext }: WallsScreenProps) {
             </View>
 
             <View style={styles.wallWrapper}>
-              <FoundationBase width={730} height={370} />
+            {!showBuildAnimation && !showWall && (
+                <FoundationBase width={730} height={370} />
+            )}
 
-              {showWall && (
+            {showBuildAnimation && (
+                <LottieView
+                source={require('../assets/Hammer animation.json')}
+                autoPlay
+                loop={true}
+                speed={0.8}
+                colorFilters={[
+                    {
+                    keypath: 'Shape Layer 1',
+                    color: '#AE5037',
+                    },
+                ]}
+                style={styles.buildAnimation}
+                />
+            )}
+
+            {!showBuildAnimation && showWall && (
                 <View style={StyleSheet.absoluteFillObject}>
-                  <View style={styles.wallPosition}>
+                <View style={styles.wallPosition}>
                     <WallBase width={736} height={378} />
-                  </View>
                 </View>
-              )}
+                </View>
+            )}
             </View>
 
             <View style={styles.bottomRow}>
@@ -240,7 +266,12 @@ const styles = StyleSheet.create({
     paddingTop: 8,
   },
   optionItemSelected: {
-
+    transform: [{ scale: 1.15 }],
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 6,
   },
   iconWrapper: {
     height: 60,
@@ -382,6 +413,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: -11,
     marginLeft: -1,
+  },
+  buildAnimation: {
+    width: 180,
+    height: 180,
   },
   nextButtonTextActive: {
     color: '#F4F1EA',

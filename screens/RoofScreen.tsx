@@ -3,6 +3,7 @@ import { Image, Pressable, StyleSheet, Text, TouchableOpacity, View, LayoutAnima
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
 import * as ScreenOrientation from 'expo-screen-orientation';
+import LottieView from 'lottie-react-native';
 
 import ThatchedRoof from '../assets/thatched-roof.svg';
 import ClayTileRoof from '../assets/clay-tile-roof.svg';
@@ -37,6 +38,7 @@ export default function RoofScreen({ onNext }: RoofScreenProps) {
   const [showHint, setShowHint] = useState(false);
   const [showRoof, setShowRoof] = useState(false);
   const [isAnimatingBuild, setIsAnimatingBuild] = useState(false);
+  const [showBuildAnimation, setShowBuildAnimation] = useState(false);
 
   const [fontsLoaded] = useFonts({
     Quicksand: require('../assets/fonts/Quicksand-VariableFont_wght.ttf'),
@@ -56,17 +58,23 @@ export default function RoofScreen({ onNext }: RoofScreenProps) {
   }, []);
 
   useEffect(() => {
-    if (selectedOption === correctAnswer && !showRoof) {
+    if (selectedOption === correctAnswer && !showRoof && !showBuildAnimation) {
       setIsAnimatingBuild(true);
+      setShowBuildAnimation(true);
+    }
+  }, [selectedOption, showRoof, showBuildAnimation]);
 
+  useEffect(() => {
+    if (showBuildAnimation) {
       const timer = setTimeout(() => {
+        setShowBuildAnimation(false);
         setShowRoof(true);
         setIsAnimatingBuild(false);
-      }, 1500);
+      }, 5000);
 
       return () => clearTimeout(timer);
     }
-  }, [selectedOption, showRoof]);
+  }, [showBuildAnimation]);
 
   if (!fontsLoaded) return null;
 
@@ -78,7 +86,7 @@ export default function RoofScreen({ onNext }: RoofScreenProps) {
         <View style={styles.canvas}>
           <View style={styles.optionCard}>
             <Text style={styles.optionTitle}>
-              Choose the{'\n'}correct roof material
+              Select the{'\n'}correct roof material
             </Text>
 
             {roofOptions.map((option) => {
@@ -120,13 +128,29 @@ export default function RoofScreen({ onNext }: RoofScreenProps) {
             </View>
 
             <View style={styles.roofWrapper}>
-              {!showRoof && (
+              {!showBuildAnimation && !showRoof && (
                 <View style={styles.windowBasePosition}>
                   <WindowBase width={710} height={383} />
                 </View>
               )}
 
-              {showRoof && (
+              {showBuildAnimation && (
+                <LottieView
+                  source={require('../assets/Hammer animation.json')}
+                  autoPlay
+                  loop={true}
+                  speed={0.8}
+                  colorFilters={[
+                    {
+                      keypath: 'Shape Layer 1',
+                      color: '#AE5037',
+                    },
+                  ]}
+                  style={styles.buildAnimation}
+                />
+              )}
+
+              {!showBuildAnimation && showRoof && (
                 <View style={StyleSheet.absoluteFillObject}>
                   <View style={styles.roofPosition}>
                     <RoofBase width={710} height={347} />
@@ -244,7 +268,12 @@ const styles = StyleSheet.create({
     paddingTop: 8,
   },
   optionItemSelected: {
-
+    transform: [{ scale: 1.15 }],
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 6,
   },
   iconWrapper: {
     height: 60,
@@ -393,6 +422,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: -18,
     marginLeft: -1,
+  },
+  buildAnimation: {
+    width: 180,
+    height: 180,
   },
   nextButtonTextActive: {
     color: '#F4F1EA',

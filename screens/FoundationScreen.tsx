@@ -86,7 +86,7 @@ export default function FoundationScreen({ onNext }: FoundationScreenProps) {
         <View style={styles.canvas}>
           <View style={styles.optionCard}>
             <Text style={styles.optionTitle}>
-              Choose the{'\n'}correct foundation material
+              Select the{'\n'}correct foundation material
             </Text>
 
             {foundationOptions.map((option) => {
@@ -257,7 +257,14 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
     paddingTop: 8,
   },
-  optionItemSelected: {},
+  optionItemSelected: {
+  transform: [{ scale: 1.15 }], 
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 4 },
+  shadowOpacity: 0.25,
+  shadowRadius: 6,
+  elevation: 6, 
+  },
   iconWrapper: {
     height: 60,
     justifyContent: 'center',

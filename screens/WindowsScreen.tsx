@@ -3,6 +3,7 @@ import { Image, Pressable, StyleSheet, Text, TouchableOpacity, View, LayoutAnima
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
 import * as ScreenOrientation from 'expo-screen-orientation';
+import LottieView from 'lottie-react-native';
 
 import WoodenFames from '../assets/wooden-frame.svg';
 import AluminiumFrames from '../assets/aluminium-frame.svg';
@@ -37,6 +38,7 @@ export default function WindowsScreen({ onNext }: WindowsScreenProps) {
   const [showHint, setShowHint] = useState(false);
   const [showWindow, setShowWindow] = useState(false);
   const [isAnimatingBuild, setIsAnimatingBuild] = useState(false);
+  const [showBuildAnimation, setShowBuildAnimation] = useState(false);
 
   const [fontsLoaded] = useFonts({
     Quicksand: require('../assets/fonts/Quicksand-VariableFont_wght.ttf'),
@@ -56,17 +58,23 @@ export default function WindowsScreen({ onNext }: WindowsScreenProps) {
   }, []);
 
   useEffect(() => {
-    if (selectedOption === correctAnswer && !showWindow) {
+    if (selectedOption === correctAnswer && !showWindow && !showBuildAnimation) {
       setIsAnimatingBuild(true);
+      setShowBuildAnimation(true);
+    }
+  }, [selectedOption, showWindow, showBuildAnimation]);
 
+  useEffect(() => {
+    if (showBuildAnimation) {
       const timer = setTimeout(() => {
+        setShowBuildAnimation(false);
         setShowWindow(true);
         setIsAnimatingBuild(false);
-      }, 1500);
+      }, 5000);
 
       return () => clearTimeout(timer);
     }
-  }, [selectedOption, showWindow]);
+  }, [showBuildAnimation]);
 
   if (!fontsLoaded) return null;
 
@@ -78,7 +86,7 @@ export default function WindowsScreen({ onNext }: WindowsScreenProps) {
         <View style={styles.canvas}>
           <View style={styles.optionCard}>
             <Text style={styles.optionTitle}>
-              Choose the{'\n'}correct window material
+              Select the{'\n'}correct window material
             </Text>
 
             {windowOptions.map((option) => {
@@ -120,13 +128,29 @@ export default function WindowsScreen({ onNext }: WindowsScreenProps) {
             </View>
 
             <View style={styles.windowWrapper}>
-              {!showWindow && (
+              {!showBuildAnimation && !showWindow && (
                 <View style={styles.wallBasePosition}>
                   <WallBase width={730} height={377} />
                 </View>
               )}
 
-              {showWindow && (
+              {showBuildAnimation && (
+                <LottieView
+                  source={require('../assets/Hammer animation.json')}
+                  autoPlay
+                  loop={true}
+                  speed={0.8}
+                  colorFilters={[
+                    {
+                      keypath: 'Shape Layer 1',
+                      color: '#AE5037',
+                    },
+                  ]}
+                  style={styles.buildAnimation}
+                />
+              )}
+
+              {!showBuildAnimation && showWindow && (
                 <View style={StyleSheet.absoluteFillObject}>
                   <View style={styles.windowPosition}>
                     <WindowBase width={740} height={384} />
@@ -244,7 +268,12 @@ const styles = StyleSheet.create({
     paddingTop: 8,
   },
   optionItemSelected: {
-
+    transform: [{ scale: 1.15 }],
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 6,
   },
   iconWrapper: {
     height: 60,
@@ -393,6 +422,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: -15,
     marginLeft: -1,
+  },
+  buildAnimation: {
+    width: 180,
+    height: 180,
   },
   nextButtonTextActive: {
     color: '#F4F1EA',
