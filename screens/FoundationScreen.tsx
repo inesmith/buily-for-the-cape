@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Image, Pressable, StyleSheet, Text, TouchableOpacity, View, LayoutAnimation, Platform, UIManager, } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
@@ -9,7 +9,14 @@ import BrickFoundation from '../assets/foundation-brick.svg';
 import WoodFoundation from '../assets/foundation-wood.svg';
 import ConcreteFoundation from '../assets/foundation-concrete.svg';
 import StoneFoundation from '../assets/foundation-stone.svg';
-import FoundationBase from '../assets/foundation.svg'
+import FoundationBase from '../assets/foundation.svg';
+
+import BrickCracked from '../assets/bricks_cracked.png';
+import Brick from '../assets/bricks.png';
+import Wood from '../assets/wood.png';
+import WoodCracked from '../assets/wood_cracked.png';
+import Concrete from '../assets/concrete.png';
+import ConcreteCracked from '../assets/concrete_cracked.png';
 
 type FoundationScreenProps = {
   onNext: () => void;
@@ -29,6 +36,8 @@ const foundationOptions = [
 ];
 
 const correctAnswer = 'stone';
+const BUILD_ANIMATION_DURATION = 5000;
+const FAILURE_TIMER_SECONDS = 3;
 
 export default function FoundationScreen({ onNext }: FoundationScreenProps) {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
@@ -36,6 +45,12 @@ export default function FoundationScreen({ onNext }: FoundationScreenProps) {
   const [showFoundation, setShowFoundation] = useState(false);
   const [isAnimatingBuild, setIsAnimatingBuild] = useState(false);
   const [showBuildAnimation, setShowBuildAnimation] = useState(false);
+  const [showCrackedFoundation, setShowCrackedFoundation] = useState(false);
+  const [countdown, setCountdown] = useState<number | null>(null);
+
+  const buildTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const crackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const countdownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const [fontsLoaded] = useFonts({
     Quicksand: require('../assets/fonts/Quicksand-VariableFont_wght.ttf'),
@@ -46,37 +61,109 @@ export default function FoundationScreen({ onNext }: FoundationScreenProps) {
     UIManager.setLayoutAnimationEnabledExperimental(true);
   }
 
+  const clearAllTimers = () => {
+    if (buildTimeoutRef.current) clearTimeout(buildTimeoutRef.current);
+    if (crackTimeoutRef.current) clearTimeout(crackTimeoutRef.current);
+    if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+  };
+
   useEffect(() => {
     ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
 
     return () => {
       ScreenOrientation.unlockAsync();
+      clearAllTimers();
     };
   }, []);
 
-  useEffect(() => {
-    if (selectedOption === correctAnswer && !showFoundation && !showBuildAnimation) {
-      setIsAnimatingBuild(true);
-      setShowBuildAnimation(true);
-    }
-  }, [selectedOption, showFoundation, showBuildAnimation]);
+  const handleOptionSelect = (optionId: string) => {
+    clearAllTimers();
 
-  // ✅ NEW: control how long animation runs
-  useEffect(() => {
-    if (showBuildAnimation) {
-      const timer = setTimeout(() => {
-        setShowBuildAnimation(false);
-        setShowFoundation(true);
-        setIsAnimatingBuild(false);
-      }, 5000);
+    setSelectedOption(optionId);
+    setShowFoundation(false);
+    setShowCrackedFoundation(false);
+    setCountdown(null);
+    setIsAnimatingBuild(true);
+    setShowBuildAnimation(true);
 
-      return () => clearTimeout(timer);
-    }
-  }, [showBuildAnimation]);
+    buildTimeoutRef.current = setTimeout(() => {
+      setShowBuildAnimation(false);
+      setShowFoundation(true);
+      setIsAnimatingBuild(false);
+
+      if (optionId !== correctAnswer) {
+        setCountdown(FAILURE_TIMER_SECONDS);
+
+        countdownIntervalRef.current = setInterval(() => {
+          setCountdown((prev) => {
+            if (prev === null) return null;
+            if (prev <= 1) {
+              if (countdownIntervalRef.current) {
+                clearInterval(countdownIntervalRef.current);
+              }
+              return 0;
+            }
+            return prev - 1;
+          });
+        }, 1000);
+
+        crackTimeoutRef.current = setTimeout(() => {
+          setShowCrackedFoundation(true);
+          setCountdown(null);
+        }, FAILURE_TIMER_SECONDS * 1000);
+      }
+    }, BUILD_ANIMATION_DURATION);
+  };
 
   if (!fontsLoaded) return null;
 
   const isCorrect = selectedOption === correctAnswer;
+
+  const renderFoundationImage = () => {
+    if (!selectedOption || !showFoundation) return null;
+
+    if (selectedOption === 'stone') {
+      return <FoundationBase width={730} height={370} />;
+    }
+
+    if (selectedOption === 'brick') {
+      return (
+        <Image
+          source={showCrackedFoundation ? BrickCracked : Brick}
+          style={showCrackedFoundation ? styles.brickCrackedImage : styles.brickImage}
+          resizeMode="contain"
+        />
+      );
+    }
+
+    if (selectedOption === 'wood') {
+      return (
+        <Image
+          source={showCrackedFoundation ? WoodCracked : Wood}
+          style={showCrackedFoundation ? styles.woodCrackedImage : styles.woodImage}
+          resizeMode="contain"
+        />
+      );
+    }
+
+    if (selectedOption === 'concrete') {
+      return (
+        <Image
+          source={showCrackedFoundation ? ConcreteCracked : Concrete}
+          style={showCrackedFoundation ? styles.concreteCrackedImage : styles.concreteImage}
+          resizeMode="contain"
+        />
+      );
+    }
+
+    return null;
+  };
+
+  const canGoNext =
+    selectedOption === correctAnswer &&
+    showFoundation &&
+    !showBuildAnimation &&
+    !showCrackedFoundation;
 
   return (
     <View style={{ flex: 1 }}>
@@ -96,7 +183,7 @@ export default function FoundationScreen({ onNext }: FoundationScreenProps) {
               return (
                 <Pressable
                   key={option.id}
-                  onPress={() => setSelectedOption(option.id)}
+                  onPress={() => handleOptionSelect(option.id)}
                   style={[
                     styles.optionItem,
                     isSelected && styles.optionItemSelected,
@@ -144,9 +231,17 @@ export default function FoundationScreen({ onNext }: FoundationScreenProps) {
                 />
               )}
 
-              {!showBuildAnimation && showFoundation && (
-                <FoundationBase width={730} height={370} />
-              )}
+              {!showBuildAnimation && renderFoundationImage()}
+
+              {!showBuildAnimation &&
+                showFoundation &&
+                selectedOption !== correctAnswer &&
+                !showCrackedFoundation &&
+                countdown !== null && (
+                  <View style={styles.timerBubble}>
+                    <Text style={styles.timerText}>{countdown}</Text>
+                  </View>
+                )}
             </View>
 
             <View style={styles.bottomRow}>
@@ -174,7 +269,7 @@ export default function FoundationScreen({ onNext }: FoundationScreenProps) {
 
               <TouchableOpacity
                 onPress={() => {
-                  if (showFoundation) {
+                  if (canGoNext) {
                     onNext();
                   }
                 }}
@@ -182,16 +277,16 @@ export default function FoundationScreen({ onNext }: FoundationScreenProps) {
                 <View
                   style={[
                     styles.nextButton,
-                    showFoundation && styles.nextButtonActive
+                    canGoNext && styles.nextButtonActive
                   ]}
                 >
                   <Text
                     style={[
                       styles.nextButtonText,
-                      showFoundation && styles.nextButtonTextActive
+                      canGoNext && styles.nextButtonTextActive
                     ]}
                   >
-                    {showFoundation ? 'Next Level' : 'Level 1'}
+                    {canGoNext ? 'Next Level' : 'Level 1'}
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -258,12 +353,12 @@ const styles = StyleSheet.create({
     paddingTop: 8,
   },
   optionItemSelected: {
-  transform: [{ scale: 1.15 }], 
-  shadowColor: '#000',
-  shadowOffset: { width: 0, height: 4 },
-  shadowOpacity: 0.25,
-  shadowRadius: 6,
-  elevation: 6, 
+    transform: [{ scale: 1.15 }],
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 6,
   },
   iconWrapper: {
     height: 60,
@@ -396,10 +491,68 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginLeft: -60,
     marginBottom: -45,
+    position: 'relative',
+  },
+  brickImage: {
+    width: 730,
+    height: 370,
+    marginLeft: 0,
+    marginTop: 110,
+  },
+  brickCrackedImage: {
+    width: 730,
+    height: 370,
+    marginLeft: 0,
+    marginTop: 75,
+  },
+  woodImage: {
+    width: 730,
+    height: 370,
+    marginLeft: 0,
+    marginTop: 60,
+  },
+  woodCrackedImage: {
+    width: 730,
+    height: 370,
+    marginLeft: 0,
+    marginTop: 115,
+  },
+  concreteImage: {
+    width: 730,
+    height: 370,
+    marginLeft: 0,
+    marginTop: 80,
+  },
+  concreteCrackedImage: {
+    width: 730,
+    height: 370,
+    marginLeft: 0,
+    marginTop: 75,
   },
   buildAnimation: {
     width: 180,
     height: 180,
+  },
+  timerBubble: {
+    position: 'absolute',
+    top: 60,
+    right: 80,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#AE5037',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.18,
+    shadowRadius: 6,
+    elevation: 5,
+  },
+  timerText: {
+    fontFamily: 'Quicksand',
+    fontSize: 18,
+    color: '#F4F1EA',
   },
   nextButtonTextActive: {
     color: '#F4F1EA',
