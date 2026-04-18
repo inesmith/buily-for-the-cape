@@ -47,11 +47,7 @@ export default function App() {
       return <RoofScreen onNext={() => setCurrentScreen('completed')} />;
 
     case 'completed':
-      return (
-        <CompletedBuildingScreen
-          onRestart={() => setCurrentScreen('home')}
-        />
-      );
+      return <CompletedBuildingScreen />;
 
     default:
       return <SplashScreen />;
