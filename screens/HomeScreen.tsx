@@ -48,10 +48,8 @@ export default function HomeScreen({ onStart }: HomeScreenProps) {
           architecture responds to climate
         </Text>
 
-        <TouchableOpacity onPress={onStart} style={styles.buttonWrapper}>
-        <BlurView intensity={50} tint="light" style={styles.button}>
+        <TouchableOpacity onPress={onStart} style={styles.button}>
         <Text style={styles.buttonText}>Start Build</Text>
-        </BlurView>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -86,28 +84,25 @@ const styles = StyleSheet.create({
     marginTop: 40,
   },
   button: {
-  overflow: 'hidden', // IMPORTANT for blur
-  backgroundColor: 'rgba(244, 241, 234, 0.25)', // lighter glass
-  minWidth: 100,
-  paddingVertical: 13,
+  backgroundColor: '#F4F1EA', 
+  minWidth: 140,
+  paddingVertical: 14,
   paddingHorizontal: 30,
   borderRadius: 40,
   alignItems: 'center',
   justifyContent: 'center',
-
-  borderWidth: 1,
-  borderColor: 'rgba(255,255,255,0.4)', // glass edge highlight
-
+  marginTop: 30,
   shadowColor: '#000',
-  shadowOffset: { width: 0, height: 3 },
-  shadowOpacity: 0.2,
+  shadowOffset: { width: 0, height: 4 },
+  shadowOpacity: 0.25,
   shadowRadius: 6,
   elevation: 6,
 },
-  buttonText: {
-    fontFamily: 'Quicksand',
-    fontSize: 18,
-    color: '#605C39',
-    fontWeight: '500',
-  },
+
+buttonText: {
+  fontFamily: 'Quicksand',
+  fontSize: 18,
+  color: '#605C39', 
+  fontWeight: '600',
+},
 });

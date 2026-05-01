@@ -189,10 +189,8 @@ export default function WallsScreen({ onNext }: WallsScreenProps) {
             they supported, but in how they worked with the environment.
           </Text>
 
-          <TouchableOpacity onPress={onNext} style={styles.successButtonWrapper}>
-            <BlurView intensity={50} tint="light" style={styles.successButton}>
-              <Text style={styles.successButtonText}>Next Level</Text>
-            </BlurView>
+          <TouchableOpacity onPress={onNext} style={styles.button}>
+                <Text style={styles.buttonText}>Next Level</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -588,4 +586,26 @@ const styles = StyleSheet.create({
     color: '#605C39',
     fontWeight: '500',
   },
+  button: {
+  backgroundColor: '#F4F1EA',
+  minWidth: 140,
+  paddingVertical: 14,
+  paddingHorizontal: 30,
+  borderRadius: 40,
+  alignItems: 'center',
+  justifyContent: 'center',
+  marginTop: 30,
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 4 },
+  shadowOpacity: 0.25,
+  shadowRadius: 6,
+  elevation: 6,
+},
+
+buttonText: {
+  fontFamily: 'Quicksand',
+  fontSize: 18,
+  color: '#605C39',
+  fontWeight: '600',
+},
 });
