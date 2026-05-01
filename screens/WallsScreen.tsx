@@ -138,7 +138,11 @@ export default function WallsScreen({ onNext }: WallsScreenProps) {
     if (!selectedOption || !showWall) return null;
 
     if (selectedOption === 'lime-washed') {
-      return <WallBase width={736} height={378} />;
+      return (
+        <View style={styles.correctWallImage}>
+            <WallBase width={736} height={378} />
+        </View>
+        );
     }
 
     if (selectedOption === 'concrete') {
@@ -203,6 +207,10 @@ export default function WallsScreen({ onNext }: WallsScreenProps) {
         <Text style={styles.pageLabel}>Building Page</Text>
 
         <View style={styles.canvas}>
+            <View style={styles.levelIndicator}>
+                <Text style={styles.levelIndicatorText}>Level 2</Text>
+            </View>
+
           <View style={styles.optionCard}>
             <Text style={styles.optionTitle}>
               Select the{'\n'}correct wall material
@@ -253,7 +261,9 @@ export default function WallsScreen({ onNext }: WallsScreenProps) {
 
             <View style={styles.wallWrapper}>
               {!showBuildAnimation && !showWall && (
+                <View style={styles.openingFoundationImage}>
                 <FoundationBase width={730} height={370} />
+                </View>
               )}
 
               {showBuildAnimation && (
@@ -333,10 +343,10 @@ const styles = StyleSheet.create({
   },
   optionCard: {
     width: 150,
-    marginLeft: 50,
+    marginLeft: -10,
     marginTop: -30,
     marginBottom: 0,
-    backgroundColor: '#f4f1eac7',
+    backgroundColor: '#F4F1EA',
     borderRadius: 28,
     paddingVertical: 24,
     paddingHorizontal: 14,
@@ -402,7 +412,7 @@ const styles = StyleSheet.create({
     height: 80,
     marginTop: -30,
     maxWidth: 502,
-    backgroundColor: '#f4f1eac7',
+    backgroundColor: '#F4F1EA',
     borderRadius: 28,
     paddingHorizontal: 24,
     justifyContent: 'center',
@@ -473,7 +483,7 @@ const styles = StyleSheet.create({
   nextButton: {
     minWidth: 100,
     maxHeight: 50,
-    backgroundColor: '#f4f1eac7',
+    backgroundColor: '#F4F1EA',
     borderRadius: 40,
     paddingVertical: 13,
     paddingHorizontal: 30,
@@ -485,7 +495,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 5,
     borderWidth: 1,
-    borderColor: '#f4f1eac7',
+    borderColor: '#F4F1EA',
     marginBottom: -25,
   },
   nextButtonText: {
@@ -498,7 +508,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginLeft: -60,
-    marginBottom: -45,
+    marginBottom: -30,
     position: 'relative',
   },
   concreteWallImage: {
@@ -528,15 +538,23 @@ const styles = StyleSheet.create({
   glassWallImage: {
     width: 736,
     height: 378,
-    marginTop: 0,
+    marginTop: 5,
     marginLeft: 0,
   },
   glassWallCrackedImage: {
     width: 736,
     height: 378,
-    marginTop: 0,
+    marginTop: 5,
     marginLeft: 0,
   },
+  correctWallImage: {
+  marginTop: -15,
+  marginLeft: 0,
+},
+openingFoundationImage: {
+  marginTop: -10,
+  marginLeft: 0,
+},
   buildAnimation: {
     width: 180,
     height: 180,
@@ -607,5 +625,29 @@ buttonText: {
   fontSize: 18,
   color: '#605C39',
   fontWeight: '600',
+},
+levelIndicator: {
+  width: 90,
+  height: 110,
+  marginLeft: 25,
+  marginTop: -30,
+  marginRight: -35,
+  backgroundColor: '#F4F1EA',
+  borderRadius: 28,
+  alignItems: 'center',
+  justifyContent: 'center',
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.14,
+  shadowRadius: 8,
+  elevation: 5,
+},
+
+levelIndicatorText: {
+  fontFamily: 'Quicksand',
+  fontSize: 18,
+  color: '#53443D',
+  transform: [{ rotate: '-90deg' }],
+  marginLeft: -40,
 },
 });

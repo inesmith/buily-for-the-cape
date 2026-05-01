@@ -137,13 +137,15 @@ export default function RoofScreen({ onNext }: RoofScreenProps) {
   const renderRoofImage = () => {
     if (!selectedOption || !showRoof) return null;
 
-    if (selectedOption === 'thatched') {
-      return (
-        <View style={styles.roofPosition}>
-          <RoofBase width={710} height={347} />
-        </View>
-      );
-    }
+   if (selectedOption === 'thatched') {
+  return (
+    <View style={styles.roofPosition}>
+      <View style={styles.correctRoofImage}>
+        <RoofBase width={736} height={378} />
+      </View>
+    </View>
+  );
+}
 
     if (selectedOption === 'clay-tile') {
       return (
@@ -206,7 +208,12 @@ export default function RoofScreen({ onNext }: RoofScreenProps) {
         <Text style={styles.pageLabel}>Building Page</Text>
 
         <View style={styles.canvas}>
+            <View style={styles.levelIndicator}>
+                <Text style={styles.levelIndicatorText}>Level 4</Text>
+            </View>
+
           <View style={styles.optionCard}>
+
             <Text style={styles.optionTitle}>
               Select the{'\n'}correct roof material
             </Text>
@@ -256,7 +263,9 @@ export default function RoofScreen({ onNext }: RoofScreenProps) {
             <View style={styles.roofWrapper}>
               {!showBuildAnimation && !showRoof && (
                 <View style={styles.windowBasePosition}>
-                  <WindowBase width={710} height={383} />
+                  <View style={styles.openingWindowImage}>
+                    <WindowBase width={736} height={378} />
+                    </View>
                 </View>
               )}
 
@@ -336,10 +345,10 @@ const styles = StyleSheet.create({
   },
   optionCard: {
     width: 150,
-    marginLeft: 50,
+    marginLeft: -10,
     marginTop: -30,
     marginBottom: 0,
-    backgroundColor: '#f4f1eac7',
+    backgroundColor: '#F4F1EA',
     borderRadius: 28,
     paddingVertical: 24,
     paddingHorizontal: 14,
@@ -405,7 +414,7 @@ const styles = StyleSheet.create({
     height: 80,
     marginTop: -30,
     maxWidth: 502,
-    backgroundColor: '#f4f1eac7',
+    backgroundColor: '#F4F1EA',
     borderRadius: 28,
     paddingHorizontal: 24,
     justifyContent: 'center',
@@ -476,7 +485,7 @@ const styles = StyleSheet.create({
   nextButton: {
     minWidth: 100,
     maxHeight: 50,
-    backgroundColor: '#f4f1eac7',
+    backgroundColor: '#F4F1EA',
     borderRadius: 40,
     paddingVertical: 13,
     paddingHorizontal: 30,
@@ -488,7 +497,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 5,
     borderWidth: 1,
-    borderColor: '#f4f1eac7',
+    borderColor: '#F4F1EA',
     marginBottom: -25,
   },
   nextButtonText: {
@@ -501,7 +510,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginLeft: -60,
-    marginBottom: -25,
+    marginBottom: -30,
     position: 'relative',
   },
   windowBasePosition: {
@@ -520,39 +529,47 @@ const styles = StyleSheet.create({
   clayRoofImage: {
     width: 710,
     height: 347,
-    marginTop: 0,
+    marginTop: -5,
     marginLeft: 0,
   },
   clayRoofCrackedImage: {
     width: 710,
     height: 347,
-    marginTop: 0,
+    marginTop: 15,
     marginLeft: 0,
   },
   metalRoofImage: {
     width: 710,
     height: 347,
-    marginTop: 0,
+    marginBottom: 35,
     marginLeft: 0,
   },
   metalRoofCrackedImage: {
     width: 710,
     height: 347,
-    marginTop: 0,
+    marginTop: -15,
     marginLeft: 0,
   },
   concreteRoofImage: {
     width: 710,
     height: 347,
-    marginTop: 0,
+    marginTop: -20,
     marginLeft: 0,
   },
   concreteRoofCrackedImage: {
     width: 710,
     height: 347,
-    marginTop: 0,
+    marginTop: -20,
     marginLeft: 0,
   },
+  correctRoofImage: {
+  marginBottom: 40,
+  marginLeft: 0,
+  },
+openingWindowImage: {
+  marginTop: -15,
+  marginLeft: 0,
+},
   buildAnimation: {
     width: 180,
     height: 180,
@@ -623,5 +640,29 @@ buttonText: {
   fontSize: 18,
   color: '#605C39',
   fontWeight: '600',
+},
+levelIndicator: {
+  width: 90,
+  height: 110,
+  marginLeft: 25,
+  marginTop: -30,
+  marginRight: -35,
+  backgroundColor: '#F4F1EA',
+  borderRadius: 28,
+  alignItems: 'center',
+  justifyContent: 'center',
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.14,
+  shadowRadius: 8,
+  elevation: 5,
+},
+
+levelIndicatorText: {
+  fontFamily: 'Quicksand',
+  fontSize: 18,
+  color: '#53443D',
+  transform: [{ rotate: '-90deg' }],
+  marginLeft: -40,
 },
 });
