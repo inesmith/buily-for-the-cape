@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { View, StyleSheet, Text, TouchableOpacity, Image, Alert,} from 'react-native';
+import { View, StyleSheet, Text, TouchableOpacity, Image, Alert, LayoutAnimation } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
 import * as ScreenOrientation from 'expo-screen-orientation';
@@ -12,6 +12,7 @@ import Voucher from '../assets/voucher.png';
 
 export default function CompletedBuildingScreen() {
   const [showVoucherScreen, setShowVoucherScreen] = useState(false);
+  const [showWind, setShowWind] = useState(false);
 
   const [fontsLoaded] = useFonts({
     Quicksand: require('../assets/fonts/Quicksand-VariableFont_wght.ttf'),
@@ -97,9 +98,9 @@ export default function CompletedBuildingScreen() {
         <View style={styles.successInner}>
           <View style={styles.voucherPosition}>
             <Image
-            source={Voucher}
-            style={styles.voucherImage}
-            resizeMode="contain"
+              source={Voucher}
+              style={styles.voucherImage}
+              resizeMode="contain"
             />
           </View>
 
@@ -116,6 +117,94 @@ export default function CompletedBuildingScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['left', 'right']}>
       <View style={styles.manorWrapper}>
+        {!showVoucherScreen && (
+          <View style={styles.windWrapper}>
+            {showWind && (
+              <View style={styles.windExpanded}>
+                <Text style={styles.windText}>Wind{'\n'}Durable</Text>
+              </View>
+            )}
+
+            <TouchableOpacity
+              onPress={() => {
+                LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+                setShowWind(!showWind);
+              }}
+              style={styles.windButtonOverlay}
+            >
+              <View style={styles.windButton}>
+                <Text style={styles.windIcon}>💨</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {!showVoucherScreen && (
+          <View style={styles.tempWrapper}>
+            {showWind && (
+              <View style={styles.tempExpanded}>
+                <Text style={styles.tempText}>Temperature{'\n'}Comfort</Text>
+              </View>
+            )}
+
+            <TouchableOpacity
+              onPress={() => {
+                LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+                setShowWind(!showWind);
+              }}
+              style={styles.tempButtonOverlay}
+            >
+              <View style={styles.tempButton}>
+                <Text style={styles.tempIcon}>🌡️</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {!showVoucherScreen && (
+          <View style={styles.authWrapper}>
+            {showWind && (
+              <View style={styles.authExpanded}>
+                <Text style={styles.authText}>Authentication{'\n'}Approved</Text>
+              </View>
+            )}
+
+            <TouchableOpacity
+              onPress={() => {
+                LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+                setShowWind(!showWind);
+              }}
+              style={styles.authButtonOverlay}
+            >
+              <View style={styles.authButton}>
+                <Text style={styles.authIcon}>✔️</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {!showVoucherScreen && (
+          <View style={styles.climateWrapper}>
+            {showWind && (
+              <View style={styles.climateExpanded}>
+                <Text style={styles.climateText}>Climate{'\n'}Control</Text>
+              </View>
+            )}
+
+            <TouchableOpacity
+              onPress={() => {
+                LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+                setShowWind(!showWind);
+              }}
+              style={styles.climateButtonOverlay}
+            >
+              <View style={styles.climateButton}>
+                <Text style={styles.climateIcon}>❄️</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+        )}
+
         <View style={styles.manorPosition}>
           <Image source={FinalManor} style={styles.manorImage} resizeMode="contain" />
         </View>
@@ -153,7 +242,7 @@ const styles = StyleSheet.create({
     marginLeft: 100,
   },
   manorImage: {
-    height: 410,
+    height: 380,
   },
   buttonWrapper: {
     marginTop: 30,
@@ -175,7 +264,7 @@ const styles = StyleSheet.create({
     maxHeight: 50,
     borderWidth: 1,
     borderColor: '#f4f1eac7',
-    marginTop: -90,
+    marginTop: -75,
     marginLeft: 75,
   },
   buttonText: {
@@ -226,9 +315,218 @@ const styles = StyleSheet.create({
     color: '#F4F1EA',
   },
   voucherImage: {
-  width: 760,
-  height: 360,
-  marginTop: 5,
-  marginLeft: 10,
-},
+    width: 760,
+    height: 360,
+    marginTop: 5,
+    marginLeft: 10,
+  },
+
+  windButton: {
+    width: 50,
+    height: 50,
+    borderRadius: 33,
+    backgroundColor: '#AE5037',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.14,
+    shadowRadius: 6,
+    elevation: 5,
+  },
+  windIcon: {
+    fontSize: 25,
+    color: '#F4F1EA',
+  },
+  windWrapper: {
+    position: 'absolute',
+    top: 55,
+    right: -5,
+    width: 210,
+    height: 50,
+    justifyContent: 'center',
+    zIndex: 10,
+  },
+  windButtonOverlay: {
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    zIndex: 2,
+  },
+  windExpanded: {
+    height: 50,
+    width: 164,
+    backgroundColor: '#AE5037',
+    borderRadius: 40,
+    justifyContent: 'center',
+    paddingLeft: 26,
+    paddingRight: 60,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.14,
+    shadowRadius: 6,
+    elevation: 5,
+    marginLeft: 45,
+  },
+  windText: {
+    color: '#F4F1EA',
+    fontFamily: 'Quicksand',
+    fontSize: 13,
+  },
+  tempWrapper: {
+    position: 'absolute',
+    top: 125,
+    right: -5,
+    width: 210,
+    height: 50,
+    justifyContent: 'center',
+    zIndex: 10,
+  },
+  tempButton: {
+    width: 50,
+    height: 50,
+    borderRadius: 33,
+    backgroundColor: '#AE5037',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.14,
+    shadowRadius: 6,
+    elevation: 5,
+  },
+  tempIcon: {
+    fontSize: 25,
+    color: '#F4F1EA',
+  },
+  tempButtonOverlay: {
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    zIndex: 2,
+  },
+  tempExpanded: {
+    height: 50,
+    width: 164,
+    backgroundColor: '#AE5037',
+    borderRadius: 40,
+    justifyContent: 'center',
+    paddingLeft: 26,
+    paddingRight: 60,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.14,
+    shadowRadius: 6,
+    elevation: 5,
+    marginLeft: 45,
+  },
+  tempText: {
+    color: '#F4F1EA',
+    fontFamily: 'Quicksand',
+    fontSize: 13,
+  },
+  climateWrapper: {
+    position: 'absolute',
+    top: 195,
+    right: -5,
+    width: 210,
+    height: 50,
+    justifyContent: 'center',
+    zIndex: 10,
+  },
+  climateButton: {
+    width: 50,
+    height: 50,
+    borderRadius: 33,
+    backgroundColor: '#AE5037',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.14,
+    shadowRadius: 6,
+    elevation: 5,
+  },
+  climateIcon: {
+    fontSize: 25,
+    color: '#F4F1EA',
+  },
+  climateButtonOverlay: {
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    zIndex: 2,
+  },
+  climateExpanded: {
+    height: 50,
+    width: 164,
+    backgroundColor: '#AE5037',
+    borderRadius: 40,
+    justifyContent: 'center',
+    paddingLeft: 26,
+    paddingRight: 60,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.14,
+    shadowRadius: 6,
+    elevation: 5,
+    marginLeft: 45,
+  },
+  climateText: {
+    color: '#F4F1EA',
+    fontFamily: 'Quicksand',
+    fontSize: 13,
+  },
+  authWrapper: {
+    position: 'absolute',
+    top: 265,
+    right: -5,
+    width: 210,
+    height: 50,
+    justifyContent: 'center',
+    zIndex: 10,
+  },
+  authButton: {
+    width: 50,
+    height: 50,
+    borderRadius: 33,
+    backgroundColor: '#AE5037',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.14,
+    shadowRadius: 6,
+    elevation: 5,
+  },
+  authIcon: {
+    fontSize: 25,
+    color: '#F4F1EA',
+  },
+  authButtonOverlay: {
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    zIndex: 2,
+  },
+  authExpanded: {
+    height: 50,
+    width: 164,
+    backgroundColor: '#AE5037',
+    borderRadius: 40,
+    justifyContent: 'center',
+    paddingLeft: 26,
+    paddingRight: 60,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.14,
+    shadowRadius: 6,
+    elevation: 5,
+    marginLeft: 45,
+  },
+  authText: {
+    color: '#F4F1EA',
+    fontFamily: 'Quicksand',
+    fontSize: 13,
+  },
 });

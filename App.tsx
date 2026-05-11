@@ -5,6 +5,7 @@ import FoundationScreen from './screens/FoundationScreen';
 import WallsScreen from './screens/WallsScreen';
 import WindowsScreen from './screens/WindowsScreen';
 import RoofScreen from './screens/RoofScreen';
+import LastLevelScreen from './screens/LastLevelScreen';
 import CompletedBuildingScreen from './screens/CompletedBuildingScreen';
 
 type ScreenName =
@@ -14,6 +15,7 @@ type ScreenName =
   | 'walls'
   | 'windows'
   | 'roof'
+  | 'last'
   | 'completed';
 
 export default function App() {
@@ -44,7 +46,10 @@ export default function App() {
       return <WindowsScreen onNext={() => setCurrentScreen('roof')} />;
 
     case 'roof':
-      return <RoofScreen onNext={() => setCurrentScreen('completed')} />;
+      return <RoofScreen onNext={() => setCurrentScreen('last')} />;
+
+    case 'last':
+      return <LastLevelScreen onNext={() => setCurrentScreen('completed')} />;
 
     case 'completed':
       return <CompletedBuildingScreen />;

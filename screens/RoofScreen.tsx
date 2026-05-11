@@ -54,6 +54,7 @@ export default function RoofScreen({ onNext }: RoofScreenProps) {
   const [showCrackedRoof, setShowCrackedRoof] = useState(false);
   const [countdown, setCountdown] = useState<number | null>(null);
   const [showSuccessScreen, setShowSuccessScreen] = useState(false);
+  const [showWind, setShowWind] = useState(false);
 
   const buildTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const crackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -259,6 +260,72 @@ export default function RoofScreen({ onNext }: RoofScreenProps) {
                 Designed to handle heavy rains and strong winds, its form protects everything beneath it while defining the building’s identity.
               </Text>
             </View>
+
+            {!showBuildAnimation && !showRoof && (
+                        <View style={styles.windWrapper}>
+                            {showWind && (
+                            <View style={styles.windExpanded}>
+                                <Text style={styles.windText}>Wind{'\n'}Durable</Text>
+                            </View>
+                            )}
+            
+                            <TouchableOpacity
+                            onPress={() => {
+                                LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+                                setShowWind(!showWind);
+                            }}
+                            style={styles.windButtonOverlay}
+                            >
+                            <View style={styles.windButton}>
+                                <Text style={styles.windIcon}>💨</Text>
+                            </View>
+                            </TouchableOpacity>
+                        </View>
+                        )}
+            
+                        {!showBuildAnimation && !showRoof && (
+                        <View style={styles.tempWrapper}>
+                            {showWind && (
+                            <View style={styles.tempExpanded}>
+                                <Text style={styles.tempText}>Temperature{'\n'}Comfort</Text>
+                            </View>
+                            )}
+            
+                            <TouchableOpacity
+                            onPress={() => {
+                                LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+                                setShowWind(!showWind);
+                            }}
+                            style={styles.tempButtonOverlay}
+                            >
+                            <View style={styles.tempButton}>
+                                <Text style={styles.tempIcon}>🌡️</Text>
+                            </View>
+                            </TouchableOpacity>
+                        </View>
+                        )}
+            
+                        {!showBuildAnimation && !showRoof && (
+                        <View style={styles.climateWrapper}>
+                            {showWind && (
+                            <View style={styles.climateExpanded}>
+                                <Text style={styles.climateText}>Climate{'\n'}Control</Text>
+                            </View>
+                            )}
+            
+                            <TouchableOpacity
+                            onPress={() => {
+                                LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+                                setShowWind(!showWind);
+                            }}
+                            style={styles.climateButtonOverlay}
+                            >
+                            <View style={styles.climateButton}>
+                                <Text style={styles.climateIcon}>❄️</Text>
+                            </View>
+                            </TouchableOpacity>
+                        </View>
+                        )}
 
             <View style={styles.roofWrapper}>
               {!showBuildAnimation && !showRoof && (
@@ -619,7 +686,7 @@ openingWindowImage: {
     color: '#605C39',
     fontWeight: '500',
   },
-   button: {
+  button: {
   backgroundColor: '#F4F1EA',
   minWidth: 140,
   paddingVertical: 14,
@@ -665,4 +732,162 @@ levelIndicatorText: {
   transform: [{ rotate: '-90deg' }],
   marginLeft: -40,
 },
+windButton: {
+    width: 50,
+    height: 50,
+    borderRadius: 33,
+    backgroundColor: '#AE5037',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.14,
+    shadowRadius: 6,
+    elevation: 5,
+  },
+  windIcon: {
+    fontSize: 25,
+    color: '#F4F1EA',
+  },
+  windWrapper: {
+  position: 'absolute',
+  top: 0,
+  right: 28,
+  width: 210,
+  height: 50,
+  justifyContent: 'center',
+  zIndex: 10,
+},
+
+windButtonOverlay: {
+  position: 'absolute',
+  right: 0,
+  top: 0,
+  zIndex: 2,
+},
+
+windExpanded: {
+  height: 50,
+  width: 164,
+  backgroundColor: '#AE5037',
+  borderRadius: 40,
+  justifyContent: 'center',
+  paddingLeft: 26,
+  paddingRight: 60,
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.14,
+  shadowRadius: 6,
+  elevation: 5,
+  marginLeft: 45,
+},
+  windText: {
+    color: '#F4F1EA',
+    fontFamily: 'Quicksand',
+    fontSize: 13,
+  },
+  tempWrapper: {
+  position: 'absolute',
+  top: 70,
+  right: 28,
+  width: 210,
+  height: 50,
+  justifyContent: 'center',
+  zIndex: 10,
+},
+tempButton: {
+    width: 50,
+    height: 50,
+    borderRadius: 33,
+    backgroundColor: '#AE5037',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.14,
+    shadowRadius: 6,
+    elevation: 5,
+  },
+  tempIcon: {
+    fontSize: 25,
+    color: '#F4F1EA',
+  },
+  tempButtonOverlay: {
+  position: 'absolute',
+  right: 0,
+  top: 0,
+  zIndex: 2,
+},
+tempExpanded: {
+  height: 50,
+  width: 164,
+  backgroundColor: '#AE5037',
+  borderRadius: 40,
+  justifyContent: 'center',
+  paddingLeft: 26,
+  paddingRight: 60,
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.14,
+  shadowRadius: 6,
+  elevation: 5,
+  marginLeft: 45,
+},
+  tempText: {
+    color: '#F4F1EA',
+    fontFamily: 'Quicksand',
+    fontSize: 13,
+  },
+  climateWrapper: {
+  position: 'absolute',
+  top: 140,
+  right: 28,
+  width: 210,
+  height: 50,
+  justifyContent: 'center',
+  zIndex: 10,
+},
+climateButton: {
+    width: 50,
+    height: 50,
+    borderRadius: 33,
+    backgroundColor: '#AE5037',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.14,
+    shadowRadius: 6,
+    elevation: 5,
+  },
+  climateIcon: {
+    fontSize: 25,
+    color: '#F4F1EA',
+  },
+  climateButtonOverlay: {
+  position: 'absolute',
+  right: 0,
+  top: 0,
+  zIndex: 2,
+},
+climateExpanded: {
+  height: 50,
+  width: 164,
+  backgroundColor: '#AE5037',
+  borderRadius: 40,
+  justifyContent: 'center',
+  paddingLeft: 26,
+  paddingRight: 60,
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.14,
+  shadowRadius: 6,
+  elevation: 5,
+  marginLeft: 45,
+},
+  climateText: {
+    color: '#F4F1EA',
+    fontFamily: 'Quicksand',
+    fontSize: 13,
+  },
 });

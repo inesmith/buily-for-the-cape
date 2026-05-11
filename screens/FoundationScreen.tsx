@@ -341,7 +341,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F4F1EA',
     flexDirection: 'row',
   },
-  optionCard: {
+ optionCard: {
     width: 150,
     marginLeft: -10,
     marginTop: -30,
@@ -449,6 +449,8 @@ const styles = StyleSheet.create({
   },
   hintIcon: {
     fontSize: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   hintExpanded: {
     height: 50,
@@ -500,6 +502,20 @@ const styles = StyleSheet.create({
     fontFamily: 'Quicksand',
     fontSize: 18,
     color: '#53443D',
+  },
+    roofWrapper: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: -60,
+    marginBottom: -30,
+    position: 'relative',
+  },
+    roofPosition: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: -18,
+    marginLeft: -1,
   },
   foundationWrapper: {
     flex: 1,

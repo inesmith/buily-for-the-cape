@@ -54,6 +54,7 @@ export default function WallsScreen({ onNext }: WallsScreenProps) {
   const [showCrackedWall, setShowCrackedWall] = useState(false);
   const [countdown, setCountdown] = useState<number | null>(null);
   const [showSuccessScreen, setShowSuccessScreen] = useState(false);
+  const [showWind, setShowWind] = useState(false);
 
   const buildTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const crackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -93,6 +94,7 @@ export default function WallsScreen({ onNext }: WallsScreenProps) {
     setShowCrackedWall(false);
     setCountdown(null);
     setShowSuccessScreen(false);
+    setShowWind(false);
     setIsAnimatingBuild(true);
     setShowBuildAnimation(true);
 
@@ -107,7 +109,7 @@ export default function WallsScreen({ onNext }: WallsScreenProps) {
         }, SUCCESS_DELAY);
       }
 
-    if (optionId !== correctAnswer) {
+      if (optionId !== correctAnswer) {
         setCountdown(FAILURE_TIMER_SECONDS);
 
         countdownIntervalRef.current = setInterval(() => {
@@ -140,9 +142,9 @@ export default function WallsScreen({ onNext }: WallsScreenProps) {
     if (selectedOption === 'lime-washed') {
       return (
         <View style={styles.correctWallImage}>
-            <WallBase width={736} height={378} />
+          <WallBase width={736} height={378} />
         </View>
-        );
+      );
     }
 
     if (selectedOption === 'concrete') {
@@ -154,7 +156,6 @@ export default function WallsScreen({ onNext }: WallsScreenProps) {
         />
       );
     }
-
 
     if (selectedOption === 'exposed-stone') {
       return (
@@ -194,7 +195,7 @@ export default function WallsScreen({ onNext }: WallsScreenProps) {
           </Text>
 
           <TouchableOpacity onPress={onNext} style={styles.button}>
-                <Text style={styles.buttonText}>Next Level</Text>
+            <Text style={styles.buttonText}>Next Level</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -207,9 +208,9 @@ export default function WallsScreen({ onNext }: WallsScreenProps) {
         <Text style={styles.pageLabel}>Building Page</Text>
 
         <View style={styles.canvas}>
-            <View style={styles.levelIndicator}>
-                <Text style={styles.levelIndicatorText}>Level 2</Text>
-            </View>
+          <View style={styles.levelIndicator}>
+            <Text style={styles.levelIndicatorText}>Level 2</Text>
+          </View>
 
           <View style={styles.optionCard}>
             <Text style={styles.optionTitle}>
@@ -262,7 +263,7 @@ export default function WallsScreen({ onNext }: WallsScreenProps) {
             <View style={styles.wallWrapper}>
               {!showBuildAnimation && !showWall && (
                 <View style={styles.openingFoundationImage}>
-                <FoundationBase width={730} height={370} />
+                  <FoundationBase width={730} height={370} />
                 </View>
               )}
 
@@ -284,6 +285,28 @@ export default function WallsScreen({ onNext }: WallsScreenProps) {
 
               {!showBuildAnimation && renderWallImage()}
             </View>
+
+              {!showBuildAnimation && !showWall && (
+                <View style={styles.windWrapper}>
+                  {showWind && (
+                    <View style={styles.windExpanded}>
+                      <Text style={styles.windText}>Wind Durable</Text>
+                    </View>
+                  )}
+
+                  <TouchableOpacity
+                    onPress={() => {
+                      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+                      setShowWind(!showWind);
+                    }}
+                    style={styles.windButtonOverlay}
+                  >
+                    <View style={styles.windButton}>
+                      <Text style={styles.windIcon}>💨</Text>
+                    </View>
+                  </TouchableOpacity>
+                </View>
+              )}
 
             <View style={styles.bottomRow}>
               <View style={styles.hintWrapper}>
@@ -454,7 +477,7 @@ const styles = StyleSheet.create({
   },
   hintExpanded: {
     height: 50,
-    width: 500,
+    width: 480,
     backgroundColor: '#AE5037',
     borderRadius: 40,
     justifyContent: 'center',
@@ -479,6 +502,60 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     zIndex: 2,
+  },
+  windButton: {
+    width: 50,
+    height: 50,
+    borderRadius: 33,
+    backgroundColor: '#AE5037',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.14,
+    shadowRadius: 6,
+    elevation: 5,
+  },
+  windIcon: {
+    fontSize: 25,
+    color: '#F4F1EA',
+  },
+  windWrapper: {
+  position: 'absolute',
+  top: 0,
+  right: 28,
+  width: 210,
+  height: 50,
+  justifyContent: 'center',
+  zIndex: 10,
+},
+
+windButtonOverlay: {
+  position: 'absolute',
+  right: 0,
+  top: 0,
+  zIndex: 2,
+},
+
+windExpanded: {
+  height: 50,
+  width: 135,
+  backgroundColor: '#AE5037',
+  borderRadius: 40,
+  justifyContent: 'center',
+  paddingLeft: 26,
+  paddingRight: 60,
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.14,
+  shadowRadius: 6,
+  elevation: 5,
+  marginLeft: 75,
+},
+  windText: {
+    color: '#F4F1EA',
+    fontFamily: 'Quicksand',
+    fontSize: 13,
   },
   nextButton: {
     minWidth: 100,
@@ -548,13 +625,13 @@ const styles = StyleSheet.create({
     marginLeft: 0,
   },
   correctWallImage: {
-  marginTop: -15,
-  marginLeft: 0,
-},
-openingFoundationImage: {
-  marginTop: -10,
-  marginLeft: 0,
-},
+    marginTop: -15,
+    marginLeft: 0,
+  },
+  openingFoundationImage: {
+    marginTop: -10,
+    marginLeft: 0,
+  },
   buildAnimation: {
     width: 180,
     height: 180,
@@ -605,49 +682,47 @@ openingFoundationImage: {
     fontWeight: '500',
   },
   button: {
-  backgroundColor: '#F4F1EA',
-  minWidth: 140,
-  paddingVertical: 14,
-  paddingHorizontal: 30,
-  borderRadius: 40,
-  alignItems: 'center',
-  justifyContent: 'center',
-  marginTop: 30,
-  shadowColor: '#000',
-  shadowOffset: { width: 0, height: 4 },
-  shadowOpacity: 0.25,
-  shadowRadius: 6,
-  elevation: 6,
-},
-
-buttonText: {
-  fontFamily: 'Quicksand',
-  fontSize: 18,
-  color: '#605C39',
-  fontWeight: '600',
-},
-levelIndicator: {
-  width: 90,
-  height: 110,
-  marginLeft: 25,
-  marginTop: -30,
-  marginRight: -35,
-  backgroundColor: '#F4F1EA',
-  borderRadius: 28,
-  alignItems: 'center',
-  justifyContent: 'center',
-  shadowColor: '#000',
-  shadowOffset: { width: 0, height: 2 },
-  shadowOpacity: 0.14,
-  shadowRadius: 8,
-  elevation: 5,
-},
-
-levelIndicatorText: {
-  fontFamily: 'Quicksand',
-  fontSize: 18,
-  color: '#53443D',
-  transform: [{ rotate: '-90deg' }],
-  marginLeft: -40,
-},
+    backgroundColor: '#F4F1EA',
+    minWidth: 140,
+    paddingVertical: 14,
+    paddingHorizontal: 30,
+    borderRadius: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 30,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 6,
+  },
+  buttonText: {
+    fontFamily: 'Quicksand',
+    fontSize: 18,
+    color: '#605C39',
+    fontWeight: '600',
+  },
+  levelIndicator: {
+    width: 90,
+    height: 110,
+    marginLeft: 25,
+    marginTop: -30,
+    marginRight: -35,
+    backgroundColor: '#F4F1EA',
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.14,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  levelIndicatorText: {
+    fontFamily: 'Quicksand',
+    fontSize: 18,
+    color: '#53443D',
+    transform: [{ rotate: '-90deg' }],
+    marginLeft: -40,
+  },
 });
