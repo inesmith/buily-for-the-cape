@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import SplashScreen from './screens/SplashScreen';
 import HomeScreen from './screens/HomeScreen';
 import FoundationScreen from './screens/FoundationScreen';
@@ -7,6 +7,7 @@ import WindowsScreen from './screens/WindowsScreen';
 import RoofScreen from './screens/RoofScreen';
 import LastLevelScreen from './screens/LastLevelScreen';
 import CompletedBuildingScreen from './screens/CompletedBuildingScreen';
+import * as ScreenOrientation from 'expo-screen-orientation';
 
 type ScreenName =
   | 'splash'
@@ -21,17 +22,18 @@ type ScreenName =
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<ScreenName>('splash');
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setCurrentScreen('home');
-    }, 4300);
-
-    return () => clearTimeout(timer);
-  }, []);
-
   switch (currentScreen) {
     case 'splash':
-      return <SplashScreen />;
+      return (
+        <SplashScreen
+          onContinue={async () => {
+            await ScreenOrientation.lockAsync(
+              ScreenOrientation.OrientationLock.LANDSCAPE
+            );
+            setCurrentScreen('home');
+          }}
+        />
+      );
 
     case 'home':
       return <HomeScreen onStart={() => setCurrentScreen('foundation')} />;
@@ -55,6 +57,15 @@ export default function App() {
       return <CompletedBuildingScreen />;
 
     default:
-      return <SplashScreen />;
+        return (
+          <SplashScreen
+            onContinue={async () => {
+              await ScreenOrientation.lockAsync(
+                ScreenOrientation.OrientationLock.LANDSCAPE
+          );
+          setCurrentScreen('home');
+        }}
+      />
+    );
   }
 }

@@ -410,6 +410,7 @@ const styles = StyleSheet.create({
     color: '#C77754',
     marginTop: -10,
     paddingBottom: 10,
+    fontWeight: 'bold',
   },
   optionItem: {
     width: '100%',

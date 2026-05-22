@@ -334,7 +334,7 @@ export default function WallsScreen({ onNext }: WallsScreenProps) {
 
               <TouchableOpacity activeOpacity={1}>
                 <View style={styles.nextButton}>
-                  <Text style={styles.nextButtonText}>Level 2</Text>
+                  <Text style={styles.nextButtonText}>Next Level</Text>
                 </View>
               </TouchableOpacity>
             </View>
@@ -388,6 +388,7 @@ const styles = StyleSheet.create({
     color: '#C77754',
     marginTop: -10,
     paddingBottom: 10,
+    fontWeight: 'bold',
   },
   optionItem: {
     width: '100%',
