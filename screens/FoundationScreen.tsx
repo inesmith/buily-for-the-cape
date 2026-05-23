@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Image, Pressable, StyleSheet, Text, TouchableOpacity, View, LayoutAnimation, Platform, UIManager, } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, TouchableOpacity, View, LayoutAnimation, Platform, UIManager, Animated, ImageBackground, } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
 import * as ScreenOrientation from 'expo-screen-orientation';
@@ -12,6 +12,7 @@ import WoodFoundation from '../assets/foundation-wood.svg';
 import ConcreteFoundation from '../assets/foundation-concrete.svg';
 import StoneFoundation from '../assets/foundation-stone.svg';
 import FoundationBase from '../assets/foundation.svg';
+import BackgroundImage from '../assets/bg.png';
 
 import BrickCracked from '../assets/bricks_cracked.png';
 import Brick from '../assets/bricks.png';
@@ -53,7 +54,10 @@ export default function FoundationScreen({ onNext }: FoundationScreenProps) {
   const [showCrackedFoundation, setShowCrackedFoundation] = useState(false);
   const [countdown, setCountdown] = useState<number | null>(null);
   const [showSuccessScreen, setShowSuccessScreen] = useState(false);
+  const [showIntroScreen, setShowIntroScreen] = useState(true);
+  const [showCompletedButton, setShowCompletedButton] = useState(false);
 
+  const pulseAnim = useRef(new Animated.Value(1)).current;
   const buildTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const crackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const countdownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -84,6 +88,27 @@ export default function FoundationScreen({ onNext }: FoundationScreenProps) {
     };
   }, []);
 
+  useEffect(() => {
+    if (selectedOption) {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, {
+            toValue: 1.05,
+            duration: 700,
+            useNativeDriver: true,
+          }),
+          Animated.timing(pulseAnim, {
+            toValue: 1,
+            duration: 700,
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+    } else {
+      pulseAnim.setValue(1);
+    }
+  }, [selectedOption]);
+
   const handleOptionSelect = (optionId: string) => {
     clearAllTimers();
 
@@ -94,6 +119,7 @@ export default function FoundationScreen({ onNext }: FoundationScreenProps) {
     setShowSuccessScreen(false);
     setIsAnimatingBuild(true);
     setShowBuildAnimation(true);
+    setShowCompletedButton(false);
 
     buildTimeoutRef.current = setTimeout(() => {
       setShowBuildAnimation(false);
@@ -102,7 +128,11 @@ export default function FoundationScreen({ onNext }: FoundationScreenProps) {
 
       if (optionId === correctAnswer) {
         successTimeoutRef.current = setTimeout(() => {
-          setShowSuccessScreen(true);
+          setShowCompletedButton(true);
+
+          successTimeoutRef.current = setTimeout(() => {
+            setShowSuccessScreen(true);
+          }, 1200);
         }, SUCCESS_DELAY);
       }
 
@@ -203,9 +233,38 @@ export default function FoundationScreen({ onNext }: FoundationScreenProps) {
   );
 }
 
+if (showIntroScreen) {
+  return (
+    <SafeAreaView style={styles.foundationIntroContainer} edges={['left', 'right']}>
+      <View style={styles.foundationIntroInner}>
+
+        <Text style={styles.leveloneIndicatorText}>Level 1</Text>
+
+        <Text style={styles.foundationIntroText}>
+          Before the walls could rise, the land had to be understood.
+          Groot Constantia was built on soil shaped by time, wind, and rain — and every decision began beneath the surface.
+          The foundation was not just about strength, but working with the environment, not against it.
+        </Text>
+
+        <TouchableOpacity
+          onPress={() => setShowIntroScreen(false)}
+          style={styles.foundationIntroButton}
+        >
+          <Text style={styles.foundationIntroButtonText}>Continue</Text>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
+  );
+}
+
   return (
     <View style={{ flex: 1 }}>
-      <View style={styles.screen}>
+      <ImageBackground
+        source={BackgroundImage}
+        style={StyleSheet.absoluteFillObject}
+        resizeMode="cover"
+      >
+        <View style={styles.screen}>
         <Text style={styles.pageLabel}>Building Page</Text>
 
         <View style={styles.canvas}>
@@ -223,7 +282,17 @@ export default function FoundationScreen({ onNext }: FoundationScreenProps) {
               const SvgImage = option.image;
 
               return (
-                <Pressable
+                <Animated.View
+                  key={option.id}
+                  style={
+                    isSelected
+                      ? {
+                          transform: [{ scale: pulseAnim }],
+                        }
+                      : undefined
+                  }
+                >
+                  <Pressable
                   key={option.id}
                   onPress={() => handleOptionSelect(option.id)}
                   style={[
@@ -247,20 +316,51 @@ export default function FoundationScreen({ onNext }: FoundationScreenProps) {
                     {option.label}
                   </Text>
                 </Pressable>
+              </Animated.View>
+
+                
               );
             })}
+
+            <View style={styles.hintWrapper}>
+              <TouchableOpacity
+                onPress={() => {
+                  LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+                  setShowHint(!showHint);
+                }}
+                style={styles.hintButtonOverlay}
+              >
+                <View style={styles.hintButton}>
+                  <Text style={styles.hintIcon}>💡</Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <View
+            pointerEvents="none"
+            style={[
+              styles.hintIndicator,
+              showHint && styles.hintIndicatorExpanded,
+            ]}
+          >
+            {showHint && (
+              <Text style={styles.hintIndicatorText}>
+                Think about what lies beneath — what kind of material would stay strong even when the ground shifts and moisture rises?
+              </Text>
+            )}
           </View>
 
           <View style={styles.buildArea}>
-            <View style={styles.infoBlock}>
-              <Text style={styles.infoText}>
-                Before the walls could rise, the land had to be understood.
-                Groot Constantia was built on soil shaped by time, wind, and rain — and every decision began beneath the surface.  
-                The foundation was not just about strength, but working with the environment, not against it.
-              </Text>
-            </View>
+            {showCrackedFoundation && selectedOption !== correctAnswer && (
+              <View style={styles.infoBlock}>
+                <Text style={styles.infoText}>
+                  Oops, you have chosen the incorrect building material.{'\n'}Please reflect on the hint and try again!
+                </Text>
+              </View>
+            )}
 
-            <View style={styles.foundationWrapper}>
+            <View pointerEvents="none" style={styles.foundationWrapper}>
               {showBuildAnimation && (
                 <LottieView
                   source={require('../assets/Hammer animation.json')}
@@ -286,61 +386,46 @@ export default function FoundationScreen({ onNext }: FoundationScreenProps) {
                 countdown !== null && null}
             </View>
 
-            <View style={styles.bottomRow}>
-              <View style={styles.hintWrapper}>
-                {showHint && (
-                  <View style={styles.hintExpanded}>
-                    <Text style={styles.hintText}>
-                      Think about what lies beneath — what kind of material would stay strong even when the ground shifts and moisture rises?
+              {showCompletedButton && (
+                <TouchableOpacity activeOpacity={1}>
+                  <View style={[styles.nextButton, styles.completedButton]}>
+                    <Text style={[styles.nextButtonText, styles.completedButtonText]}>
+                      Build Completed
                     </Text>
                   </View>
-                )}
-
-                <TouchableOpacity
-                  onPress={() => {
-                    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-                    setShowHint(!showHint);
-                  }}
-                  style={styles.hintButtonOverlay}
-                >
-                  <View style={styles.hintButton}>
-                    <Text style={styles.hintIcon}>💡</Text>
-                  </View>
                 </TouchableOpacity>
-              </View>
-
-              <TouchableOpacity activeOpacity={1}>
-                <View style={styles.nextButton}>
-                  <Text style={styles.nextButtonText}>Next Level</Text>
-                </View>
-              </TouchableOpacity>
+              )}
             </View>
           </View>
         </View>
-      </View>
-    </View>
+  </ImageBackground>
+  </View>
   );
 }
 
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: '#F4F1EA',
+    backgroundColor: '#f4f1ea4e',
     paddingHorizontal: 28,
     paddingTop: 18,
     paddingBottom: 22,
   },
+
   pageLabel: {
     fontFamily: 'Quicksand',
-    color: '#F4F1EA',
+    color: 'transparent',
     fontSize: 18,
     marginBottom: 14,
   },
+
   canvas: {
     flex: 1,
-    backgroundColor: '#F4F1EA',
+    backgroundColor: 'transparent',
     flexDirection: 'row',
+    position: 'relative',
   },
+
  optionCard: {
     width: 150,
     marginLeft: -10,
@@ -355,6 +440,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.14,
     shadowRadius: 8,
+    zIndex: 2,
     elevation: 5,
   },
   optionTitle: {
@@ -378,11 +464,10 @@ const styles = StyleSheet.create({
     paddingTop: 8,
   },
   optionItemSelected: {
-    transform: [{ scale: 1.15 }],
-    shadowColor: '#000',
+    shadowColor: '#C77754',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 6,
+    shadowOpacity: 15,
+    shadowRadius: 5,
     elevation: 6,
   },
   iconWrapper: {
@@ -410,10 +495,10 @@ const styles = StyleSheet.create({
     paddingBottom: 26,
   },
   infoBlock: {
-    height: 80,
+    height: 70,
     marginTop: -30,
     maxWidth: 502,
-    backgroundColor: '#F4F1EA',
+    backgroundColor: '#AE5037',
     borderRadius: 28,
     paddingHorizontal: 24,
     justifyContent: 'center',
@@ -425,65 +510,88 @@ const styles = StyleSheet.create({
   },
   infoText: {
     fontFamily: 'Quicksand',
-    fontSize: 10,
-    color: '#53443D',
+    fontSize: 12,
+    color: '#F4F1EA',
     paddingTop: 10,
     paddingBottom: 10,
-  },
-  bottomRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    lineHeight: 18,
+    fontWeight: '500',
   },
   hintButton: {
-    width: 50,
-    height: 50,
-    borderRadius: 33,
-    backgroundColor: '#AE5037',
+    width: 60,
+    height: 55,
+    borderTopRightRadius: 100,
+    borderBottomRightRadius: 100,
+    borderTopLeftRadius: 100,
+    borderBottomLeftRadius: 0,
+    backgroundColor: '#F4F1EA',
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: 0,
+    marginLeft: 30,
+  },
+  hintIndicator: {
+    position: 'absolute',
+    left: 175,
+    bottom: 0,
+    width: 80,
+    height: 55,
+    borderRadius: 100,
+    backgroundColor: '#F4F1EA',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.14,
-    shadowRadius: 6,
-    elevation: 5,
+    shadowRadius: 8,
+    elevation: 1,
+    zIndex: 1,
   },
+
   hintIcon: {
     fontSize: 25,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  hintExpanded: {
-    height: 50,
-    width: 500,
-    backgroundColor: '#AE5037',
-    borderRadius: 40,
-    justifyContent: 'center',
-    paddingHorizontal: 60,
+    marginLeft: -10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.14,
-    shadowRadius: 6,
+    shadowRadius: 8,
     elevation: 5,
   },
-  hintText: {
-    color: '#F4F1EA',
+
+  hintIndicatorExpanded: {
+    width: 500,
+  },
+
+  hintIndicatorText: {
     fontFamily: 'Quicksand',
     fontSize: 12,
+    color: '#AE5037',
+    paddingLeft: 90,
+    paddingRight: 24,
+    marginTop: 13,
+    fontWeight: '500',
   },
+
   hintWrapper: {
-    position: 'relative',
+    position: 'absolute',
+    left: 95,
+    bottom: 0,
     justifyContent: 'center',
-    marginBottom: -25,
+    alignItems: 'center',
+    zIndex: 10,
+    elevation: 10,
   },
   hintButtonOverlay: {
     position: 'absolute',
     left: 0,
-    zIndex: 2,
+    bottom: 0,
+    zIndex: 11,
+    elevation: 11,
   },
   nextButton: {
+    position: 'absolute',
+    right: 28,
+    bottom: -25,
     minWidth: 100,
-    maxHeight: 50,
+    maxHeight: 55,
     backgroundColor: '#F4F1EA',
     borderRadius: 40,
     paddingVertical: 13,
@@ -497,7 +605,6 @@ const styles = StyleSheet.create({
     elevation: 5,
     borderWidth: 1,
     borderColor: '#F4F1EA',
-    marginBottom: -25,
   },
   nextButtonText: {
     fontFamily: 'Quicksand',
@@ -530,42 +637,84 @@ const styles = StyleSheet.create({
     width: 730,
     height: 370,
     marginLeft: 0,
-    marginTop: 95,
+    marginTop: 135,
+      shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 14,
+    shadowRadius: 8,
+    zIndex: 2,
+    elevation: 5,
   },
   brickCrackedImage: {
     width: 730,
     height: 370,
     marginLeft: 0,
-    marginTop: 60,
+    marginTop: 65,
+      shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 14,
+    shadowRadius: 8,
+    zIndex: 2,
+    elevation: 5,
   },
   woodImage: {
     width: 730,
     height: 370,
     marginLeft: 0,
-    marginTop: 40,
+    marginTop: 80,
+      shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 14,
+    shadowRadius: 8,
+    zIndex: 2,
+    elevation: 5,
   },
   woodCrackedImage: {
     width: 730,
     height: 370,
     marginLeft: 0,
-    marginTop: 95,
+    marginTop: 100,
+      shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 14,
+    shadowRadius: 8,
+    zIndex: 2,
+    elevation: 5,
   },
   concreteImage: {
     width: 730,
     height: 370,
     marginLeft: 0,
-    marginTop: 60,
+    marginTop: 100,
+      shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 14,
+    shadowRadius: 8,
+    zIndex: 2,
+    elevation: 5,
   },
   concreteCrackedImage: {
     width: 730,
     height: 370,
     marginLeft: 0,
-    marginTop: 55,
+    marginTop: 60,
+      shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 14,
+    shadowRadius: 8,
+    zIndex: 2,
+    elevation: 5,
   },
   stoneImage: {
-  marginTop: -12,
-  marginLeft: 0,
-},
+    marginTop: 32,
+    marginLeft: 0,
+      shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 14,
+    shadowRadius: 8,
+    zIndex: 2,
+    elevation: 5,
+  },
   buildAnimation: {
     width: 180,
     height: 180,
@@ -681,5 +830,71 @@ levelIndicatorText: {
   color: '#53443D',
   transform: [{ rotate: '-90deg' }],
   marginLeft: -40,
+},
+
+foundationIntroContainer: {
+  flex: 1,
+  backgroundColor: '#AE5037',
+},
+
+foundationIntroInner: {
+  flex: 1,
+  alignItems: 'center',
+  justifyContent: 'center',
+  paddingHorizontal: 40,
+},
+
+completedButton: {
+  backgroundColor: '#799CB2',
+  borderColor: '#799CB2',
+},
+
+completedButtonText: {
+  color: '#F4F1EA',
+},
+
+leveloneIndicatorText: {
+  fontFamily: 'Quicksand',
+  fontSize: 30,
+  color: '#F4F1EA',
+  alignItems: 'center',
+  justifyContent: 'center',
+  fontWeight: '600',
+  marginBottom: 20,
+  marginTop: -60,
+},
+
+foundationIntroText: {
+  fontFamily: 'Quicksand',
+  fontSize: 18,
+  lineHeight: 28,
+  color: '#F4F1EA',
+  textAlign: 'center',
+  maxWidth: 700,
+  justifyContent: 'center',
+},
+
+foundationIntroButton: {
+  position: 'absolute',
+  bottom: 41,
+  backgroundColor: '#F4F1EA',
+  minWidth: 140,
+  paddingVertical: 14,
+  paddingHorizontal: 30,
+  borderRadius: 40,
+  alignItems: 'center',
+  justifyContent: 'center',
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 4 },
+  shadowOpacity: 0.25,
+  shadowRadius: 6,
+  elevation: 6,
+},
+
+foundationIntroButtonText: {
+  fontFamily: 'Quicksand',
+  fontSize: 18,
+  color: '#AE5037',
+  fontWeight: '600',
 },
 });
