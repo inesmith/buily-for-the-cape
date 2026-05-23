@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Image, Pressable, StyleSheet, Text, TouchableOpacity, View, LayoutAnimation, Platform, UIManager, } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, TouchableOpacity, View, LayoutAnimation, Platform, UIManager, Animated, ImageBackground, } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
 import * as ScreenOrientation from 'expo-screen-orientation';
@@ -13,6 +13,7 @@ import ExposedStoneWalls from '../assets/exposed-stone-wall.svg';
 import GlassWalls from '../assets/glass-wall.svg';
 import WallBase from '../assets/wallBase.svg';
 import FoundationBase from '../assets/foundation.svg';
+import BackgroundImage from '../assets/bg.png';
 
 import ConcreteWallChosen from '../assets/concrete-wall-chosen.png';
 import ConcreteWallCracked from '../assets/concrete-wall-cracked.png';
@@ -54,8 +55,10 @@ export default function WallsScreen({ onNext }: WallsScreenProps) {
   const [showCrackedWall, setShowCrackedWall] = useState(false);
   const [countdown, setCountdown] = useState<number | null>(null);
   const [showSuccessScreen, setShowSuccessScreen] = useState(false);
-  const [showWind, setShowWind] = useState(false);
+  const [showIntroScreen, setShowIntroScreen] = useState(true);
+  const [showCompletedButton, setShowCompletedButton] = useState(false);
 
+  const pulseAnim = useRef(new Animated.Value(1)).current;
   const buildTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const crackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const countdownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -86,17 +89,39 @@ export default function WallsScreen({ onNext }: WallsScreenProps) {
     };
   }, []);
 
+  useEffect(() => {
+    if (selectedOption) {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, {
+            toValue: 1.05,
+            duration: 700,
+            useNativeDriver: true,
+          }),
+          Animated.timing(pulseAnim, {
+            toValue: 1,
+            duration: 700,
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+    } else {
+      pulseAnim.setValue(1);
+    }
+  }, [selectedOption]);
+
   const handleOptionSelect = (optionId: string) => {
     clearAllTimers();
 
     setSelectedOption(optionId);
+    setShowHint(false);
     setShowWall(false);
     setShowCrackedWall(false);
     setCountdown(null);
     setShowSuccessScreen(false);
-    setShowWind(false);
     setIsAnimatingBuild(true);
     setShowBuildAnimation(true);
+    setShowCompletedButton(false);
 
     buildTimeoutRef.current = setTimeout(() => {
       setShowBuildAnimation(false);
@@ -105,7 +130,11 @@ export default function WallsScreen({ onNext }: WallsScreenProps) {
 
       if (optionId === correctAnswer) {
         successTimeoutRef.current = setTimeout(() => {
-          setShowSuccessScreen(true);
+          setShowCompletedButton(true);
+
+          successTimeoutRef.current = setTimeout(() => {
+            setShowSuccessScreen(true);
+          }, 1200);
         }, SUCCESS_DELAY);
       }
 
@@ -202,123 +231,97 @@ export default function WallsScreen({ onNext }: WallsScreenProps) {
     );
   }
 
+  if (showIntroScreen) {
+    return (
+      <SafeAreaView style={styles.foundationIntroContainer} edges={['left', 'right']}>
+        <View style={styles.foundationIntroInner}>
+
+          <Text style={styles.leveloneIndicatorText}>Level 2: The Walls</Text>
+
+          <Text style={styles.foundationIntroText}>
+            With the foundation set, the structure begins to rise...
+
+            {'\n'}{'\n'}
+
+            The walls were built thick and solid — not for decoration, but for survival.
+            In the Cape’s shifting climate, these walls kept interiors cool during harsh summers
+            and held warmth through the cold.
+          </Text>
+
+          <TouchableOpacity
+            onPress={() => setShowIntroScreen(false)}
+            style={styles.foundationIntroButton}
+          >
+            <Text style={styles.foundationIntroButtonText}>Continue</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <View style={{ flex: 1 }}>
-      <View style={styles.screen}>
-        <Text style={styles.pageLabel}>Building Page</Text>
+      <ImageBackground
+        source={BackgroundImage}
+        style={StyleSheet.absoluteFillObject}
+        resizeMode="cover"
+      >
+        <View style={styles.screen}>
+          <Text style={styles.pageLabel}>Building Page</Text>
 
-        <View style={styles.canvas}>
-          <View style={styles.levelIndicator}>
-            <Text style={styles.levelIndicatorText}>Level 2</Text>
-          </View>
+          <View style={styles.canvas}>
+            <View style={styles.levelIndicator}>
+              <Text style={styles.levelIndicatorText}>Level 2</Text>
+            </View>
 
-          <View style={styles.optionCard}>
-            <Text style={styles.optionTitle}>
-              Select the{'\n'}correct wall material
-            </Text>
-
-            {wallOptions.map((option) => {
-              const isSelected = selectedOption === option.id;
-              const SvgImage = option.image;
-
-              return (
-                <Pressable
-                  key={option.id}
-                  onPress={() => handleOptionSelect(option.id)}
-                  style={[
-                    styles.optionItem,
-                    isSelected && styles.optionItemSelected,
-                  ]}
-                >
-                  <View style={styles.iconWrapper}>
-                    <SvgImage
-                      width={option.width || 90}
-                      height={option.height || 60}
-                    />
-                  </View>
-
-                  <Text
-                    style={[
-                      styles.optionLabel,
-                      isSelected && styles.optionLabelSelected,
-                    ]}
-                  >
-                    {option.label}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
-
-          <View style={styles.buildArea}>
-            <View style={styles.infoBlock}>
-              <Text style={styles.infoText}>
-                With the foundation set, the structure begins to rise...{'\n'}
-                {'\n'}The walls were built thick and solid — not for decoration, but for survival.
-                In the Cape’s shifting climate, these walls kept interiors cool during harsh summers
-                and held warmth through the cold.
+            <View style={styles.optionCard}>
+              <Text style={styles.optionTitle}>
+                Select the{'\n'}correct wall material
               </Text>
-            </View>
 
-            <View style={styles.wallWrapper}>
-              {!showBuildAnimation && !showWall && (
-                <View style={styles.openingFoundationImage}>
-                  <FoundationBase width={730} height={370} />
-                </View>
-              )}
+              {wallOptions.map((option) => {
+                const isSelected = selectedOption === option.id;
+                const SvgImage = option.image;
 
-              {showBuildAnimation && (
-                <LottieView
-                  source={require('../assets/Hammer animation.json')}
-                  autoPlay
-                  loop={true}
-                  speed={0.8}
-                  colorFilters={[
-                    {
-                      keypath: 'Shape Layer 1',
-                      color: '#AE5037',
-                    },
-                  ]}
-                  style={styles.buildAnimation}
-                />
-              )}
-
-              {!showBuildAnimation && renderWallImage()}
-            </View>
-
-              {!showBuildAnimation && !showWall && (
-                <View style={styles.windWrapper}>
-                  {showWind && (
-                    <View style={styles.windExpanded}>
-                      <Text style={styles.windText}>Wind Durable</Text>
-                    </View>
-                  )}
-
-                  <TouchableOpacity
-                    onPress={() => {
-                      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-                      setShowWind(!showWind);
-                    }}
-                    style={styles.windButtonOverlay}
+                return (
+                  <Animated.View
+                    key={option.id}
+                    style={
+                      isSelected
+                        ? {
+                            transform: [{ scale: pulseAnim }],
+                          }
+                        : undefined
+                    }
                   >
-                    <View style={styles.windButton}>
-                      <Text style={styles.windIcon}>💨</Text>
-                    </View>
-                  </TouchableOpacity>
-                </View>
-              )}
+                    <Pressable
+                      onPress={() => handleOptionSelect(option.id)}
+                      style={[
+                        styles.optionItem,
+                        isSelected && styles.optionItemSelected,
+                      ]}
+                    >
+                      <View style={styles.iconWrapper}>
+                        <SvgImage
+                          width={option.width || 90}
+                          height={option.height || 60}
+                        />
+                      </View>
 
-            <View style={styles.bottomRow}>
+                      <Text
+                        style={[
+                          styles.optionLabel,
+                          isSelected && styles.optionLabelSelected,
+                        ]}
+                      >
+                        {option.label}
+                      </Text>
+                    </Pressable>
+                  </Animated.View>
+                );
+              })}
+
               <View style={styles.hintWrapper}>
-                {showHint && (
-                  <View style={styles.hintExpanded}>
-                    <Text style={styles.hintText}>
-                      Consider how a building protects itself from both heat and cold without relying
-                      on modern technology.
-                    </Text>
-                  </View>
-                )}
-
                 <TouchableOpacity
                   onPress={() => {
                     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -331,16 +334,70 @@ export default function WallsScreen({ onNext }: WallsScreenProps) {
                   </View>
                 </TouchableOpacity>
               </View>
+            </View>
 
-              <TouchableOpacity activeOpacity={1}>
-                <View style={styles.nextButton}>
-                  <Text style={styles.nextButtonText}>Next Level</Text>
+            <View
+              pointerEvents="none"
+              style={[
+                styles.hintIndicator,
+                showHint && styles.hintIndicatorExpanded,
+              ]}
+            >
+              {showHint && (
+                <Text style={styles.hintIndicatorText}>
+                  Consider how a building protects itself from both heat and cold without relying on modern technology.
+                </Text>
+              )}
+            </View>
+
+            <View style={styles.buildArea}>
+              {showCrackedWall && selectedOption !== correctAnswer && (
+                <View style={styles.infoBlock}>
+                  <Text style={styles.infoText}>
+                    Oops, you have chosen the incorrect building material.{'\n'}Please reflect on the hint and try again!
+                  </Text>
                 </View>
-              </TouchableOpacity>
+              )}
+
+              <View pointerEvents="none" style={styles.wallWrapper}>
+                {!showBuildAnimation && !showWall && (
+                  <View style={styles.openingFoundationImage}>
+                    <FoundationBase width={730} height={370} />
+                  </View>
+                )}
+
+                {showBuildAnimation && (
+                  <LottieView
+                    source={require('../assets/Hammer animation.json')}
+                    autoPlay
+                    loop={true}
+                    speed={0.8}
+                    colorFilters={[
+                      {
+                        keypath: 'Shape Layer 1',
+                        color: '#AE5037',
+                      },
+                    ]}
+                    style={styles.buildAnimation}
+                  />
+                )}
+
+                {!showBuildAnimation && renderWallImage()}
+              </View>
+
+              {showCompletedButton && (
+                <TouchableOpacity activeOpacity={1}>
+                  <View style={[styles.nextButton, styles.completedButton]}>
+                    <Text style={[styles.nextButtonText, styles.completedButtonText]}>
+                      Build Completed
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              )}
             </View>
           </View>
         </View>
-      </View>
+      </ImageBackground>
     </View>
   );
 }
@@ -348,22 +405,26 @@ export default function WallsScreen({ onNext }: WallsScreenProps) {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: '#F4F1EA',
+    backgroundColor: '#f4f1ea4e',
     paddingHorizontal: 28,
     paddingTop: 18,
     paddingBottom: 22,
   },
+
   pageLabel: {
     fontFamily: 'Quicksand',
-    color: '#F4F1EA',
+    color: 'transparent',
     fontSize: 18,
     marginBottom: 14,
   },
+
   canvas: {
     flex: 1,
-    backgroundColor: '#F4F1EA',
+    backgroundColor: 'transparent',
     flexDirection: 'row',
+    position: 'relative',
   },
+
   optionCard: {
     width: 150,
     marginLeft: -10,
@@ -378,6 +439,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.14,
     shadowRadius: 8,
+    zIndex: 2,
     elevation: 5,
   },
   optionTitle: {
@@ -401,12 +463,11 @@ const styles = StyleSheet.create({
     paddingTop: 8,
   },
   optionItemSelected: {
-    transform: [{ scale: 1.15 }],
-    shadowColor: '#000',
+    shadowColor: '#C77754',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 6,
-    elevation: 6,
+    shadowOpacity: 15,
+    shadowRadius: 8,
+    elevation: 10,
   },
   iconWrapper: {
     height: 60,
@@ -433,10 +494,10 @@ const styles = StyleSheet.create({
     paddingBottom: 26,
   },
   infoBlock: {
-    height: 80,
+    height: 70,
     marginTop: -30,
     maxWidth: 502,
-    backgroundColor: '#F4F1EA',
+    backgroundColor: '#AE5037',
     borderRadius: 28,
     paddingHorizontal: 24,
     justifyContent: 'center',
@@ -448,119 +509,88 @@ const styles = StyleSheet.create({
   },
   infoText: {
     fontFamily: 'Quicksand',
-    fontSize: 10,
-    color: '#53443D',
+    fontSize: 12,
+    color: '#F4F1EA',
     paddingTop: 10,
     paddingBottom: 10,
-  },
-  bottomRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    lineHeight: 18,
+    fontWeight: '500',
   },
   hintButton: {
-    width: 50,
-    height: 50,
-    borderRadius: 33,
-    backgroundColor: '#AE5037',
+    width: 60,
+    height: 55,
+    borderTopRightRadius: 100,
+    borderBottomRightRadius: 100,
+    borderTopLeftRadius: 100,
+    borderBottomLeftRadius: 0,
+    backgroundColor: '#F4F1EA',
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: 0,
+    marginLeft: 30,
+  },
+  hintIndicator: {
+    position: 'absolute',
+    left: 175,
+    bottom: 0,
+    width: 80,
+    height: 55,
+    borderRadius: 100,
+    backgroundColor: '#F4F1EA',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.14,
-    shadowRadius: 6,
-    elevation: 5,
+    shadowRadius: 8,
+    elevation: 1,
+    zIndex: 1,
   },
+
   hintIcon: {
     fontSize: 25,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  hintExpanded: {
-    height: 50,
-    width: 480,
-    backgroundColor: '#AE5037',
-    borderRadius: 40,
-    justifyContent: 'center',
-    paddingHorizontal: 60,
+    marginLeft: -10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.14,
-    shadowRadius: 6,
+    shadowRadius: 8,
     elevation: 5,
   },
-  hintText: {
-    color: '#F4F1EA',
+
+  hintIndicatorExpanded: {
+    width: 500,
+  },
+
+  hintIndicatorText: {
     fontFamily: 'Quicksand',
     fontSize: 12,
+    color: '#AE5037',
+    paddingLeft: 90,
+    paddingRight: 24,
+    marginTop: 13,
+    fontWeight: '500',
   },
+
   hintWrapper: {
-    position: 'relative',
+    position: 'absolute',
+    left: 95,
+    bottom: 0,
     justifyContent: 'center',
-    marginBottom: -25,
+    alignItems: 'center',
+    zIndex: 10,
+    elevation: 10,
   },
   hintButtonOverlay: {
     position: 'absolute',
     left: 0,
-    zIndex: 2,
-  },
-  windButton: {
-    width: 50,
-    height: 50,
-    borderRadius: 33,
-    backgroundColor: '#AE5037',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.14,
-    shadowRadius: 6,
-    elevation: 5,
-  },
-  windIcon: {
-    fontSize: 25,
-    color: '#F4F1EA',
-  },
-  windWrapper: {
-  position: 'absolute',
-  top: 0,
-  right: 28,
-  width: 210,
-  height: 50,
-  justifyContent: 'center',
-  zIndex: 10,
-},
-
-windButtonOverlay: {
-  position: 'absolute',
-  right: 0,
-  top: 0,
-  zIndex: 2,
-},
-
-windExpanded: {
-  height: 50,
-  width: 135,
-  backgroundColor: '#AE5037',
-  borderRadius: 40,
-  justifyContent: 'center',
-  paddingLeft: 26,
-  paddingRight: 60,
-  shadowColor: '#000',
-  shadowOffset: { width: 0, height: 2 },
-  shadowOpacity: 0.14,
-  shadowRadius: 6,
-  elevation: 5,
-  marginLeft: 75,
-},
-  windText: {
-    color: '#F4F1EA',
-    fontFamily: 'Quicksand',
-    fontSize: 13,
+    bottom: 0,
+    zIndex: 11,
+    elevation: 11,
   },
   nextButton: {
+    position: 'absolute',
+    right: 28,
+    bottom: -25,
     minWidth: 100,
-    maxHeight: 50,
+    maxHeight: 55,
     backgroundColor: '#F4F1EA',
     borderRadius: 40,
     paddingVertical: 13,
@@ -574,7 +604,6 @@ windExpanded: {
     elevation: 5,
     borderWidth: 1,
     borderColor: '#F4F1EA',
-    marginBottom: -25,
   },
   nextButtonText: {
     fontFamily: 'Quicksand',
@@ -592,7 +621,7 @@ windExpanded: {
   concreteWallImage: {
     width: 736,
     height: 378,
-    marginTop: 0,
+    marginTop: 45,
     marginLeft: 0,
   },
   concreteWallCrackedImage: {
@@ -604,7 +633,7 @@ windExpanded: {
   exposedStoneWallImage: {
     width: 736,
     height: 378,
-    marginTop: 0,
+    marginTop: 45,
     marginLeft: 0,
   },
   exposedStoneWallCrackedImage: {
@@ -616,7 +645,7 @@ windExpanded: {
   glassWallImage: {
     width: 736,
     height: 378,
-    marginTop: 5,
+    marginTop: 45,
     marginLeft: 0,
   },
   glassWallCrackedImage: {
@@ -626,11 +655,11 @@ windExpanded: {
     marginLeft: 0,
   },
   correctWallImage: {
-    marginTop: -15,
+    marginTop: 30,
     marginLeft: 0,
   },
   openingFoundationImage: {
-    marginTop: -10,
+    marginTop: 45,
     marginLeft: 0,
   },
   buildAnimation: {
@@ -696,6 +725,7 @@ windExpanded: {
     shadowOpacity: 0.25,
     shadowRadius: 6,
     elevation: 6,
+    marginBottom: 25,
   },
   buttonText: {
     fontFamily: 'Quicksand',
@@ -725,5 +755,63 @@ windExpanded: {
     color: '#53443D',
     transform: [{ rotate: '-90deg' }],
     marginLeft: -40,
+  },
+  foundationIntroContainer: {
+    flex: 1,
+    backgroundColor: '#AE5037',
+  },
+  foundationIntroInner: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 40,
+  },
+  completedButton: {
+    backgroundColor: '#799CB2',
+    borderColor: '#799CB2',
+  },
+  completedButtonText: {
+    color: '#F4F1EA',
+  },
+  leveloneIndicatorText: {
+    fontFamily: 'Quicksand',
+    fontSize: 30,
+    color: '#F4F1EA',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontWeight: '600',
+    marginBottom: 20,
+    marginTop: -60,
+  },
+  foundationIntroText: {
+    fontFamily: 'Quicksand',
+    fontSize: 18,
+    lineHeight: 28,
+    color: '#F4F1EA',
+    textAlign: 'center',
+    maxWidth: 700,
+    justifyContent: 'center',
+  },
+  foundationIntroButton: {
+    position: 'absolute',
+    bottom: 41,
+    backgroundColor: '#F4F1EA',
+    minWidth: 140,
+    paddingVertical: 14,
+    paddingHorizontal: 30,
+    borderRadius: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 6,
+  },
+  foundationIntroButtonText: {
+    fontFamily: 'Quicksand',
+    fontSize: 18,
+    color: '#AE5037',
+    fontWeight: '600',
   },
 });
