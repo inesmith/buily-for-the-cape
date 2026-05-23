@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Image, Pressable, StyleSheet, Text, TouchableOpacity, View, LayoutAnimation, Platform, UIManager, } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, TouchableOpacity, View, LayoutAnimation, Platform, UIManager, Animated, ImageBackground, } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
 import * as ScreenOrientation from 'expo-screen-orientation';
@@ -13,6 +13,7 @@ import FullGlassPanels from '../assets/full-glass.svg';
 import SteelFrames from '../assets/steel-frame.svg';
 import WindowBase from '../assets/windows.svg';
 import WallBase from '../assets/wallBase.svg';
+import BackgroundImage from '../assets/bg.png';
 
 import AluminiumFramesChosen from '../assets/aluminium-frames-chosen.png';
 import AluminiumFramesCracked from '../assets/aluminium-frames-cracked.png';
@@ -54,8 +55,10 @@ export default function WindowsScreen({ onNext }: WindowsScreenProps) {
   const [showCrackedWindow, setShowCrackedWindow] = useState(false);
   const [countdown, setCountdown] = useState<number | null>(null);
   const [showSuccessScreen, setShowSuccessScreen] = useState(false);
-  const [showWind, setShowWind] = useState(false);
+  const [showIntroScreen, setShowIntroScreen] = useState(true);
+  const [showCompletedButton, setShowCompletedButton] = useState(false);
 
+  const pulseAnim = useRef(new Animated.Value(1)).current;
   const buildTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const crackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const countdownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -86,16 +89,39 @@ export default function WindowsScreen({ onNext }: WindowsScreenProps) {
     };
   }, []);
 
+  useEffect(() => {
+    if (selectedOption) {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, {
+            toValue: 1.05,
+            duration: 700,
+            useNativeDriver: true,
+          }),
+          Animated.timing(pulseAnim, {
+            toValue: 1,
+            duration: 700,
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+    } else {
+      pulseAnim.setValue(1);
+    }
+  }, [selectedOption]);
+
   const handleOptionSelect = (optionId: string) => {
     clearAllTimers();
 
     setSelectedOption(optionId);
+    setShowHint(false);
     setShowWindow(false);
     setShowCrackedWindow(false);
     setCountdown(null);
     setShowSuccessScreen(false);
     setIsAnimatingBuild(true);
     setShowBuildAnimation(true);
+    setShowCompletedButton(false);
 
     buildTimeoutRef.current = setTimeout(() => {
       setShowBuildAnimation(false);
@@ -104,7 +130,11 @@ export default function WindowsScreen({ onNext }: WindowsScreenProps) {
 
       if (optionId === correctAnswer) {
         successTimeoutRef.current = setTimeout(() => {
-          setShowSuccessScreen(true);
+          setShowCompletedButton(true);
+
+          successTimeoutRef.current = setTimeout(() => {
+            setShowSuccessScreen(true);
+          }, 1200);
         }, SUCCESS_DELAY);
       }
 
@@ -141,9 +171,9 @@ export default function WindowsScreen({ onNext }: WindowsScreenProps) {
     if (selectedOption === 'wooden-frames') {
       return (
         <View style={styles.correctWindowImage}>
-            <WindowBase width={736} height={378} />
+          <WindowBase width={736} height={378} />
         </View>
-        );
+      );
     }
 
     if (selectedOption === 'aluminium-frames') {
@@ -194,7 +224,34 @@ export default function WindowsScreen({ onNext }: WindowsScreenProps) {
           </Text>
 
           <TouchableOpacity onPress={onNext} style={styles.button}>
-                <Text style={styles.buttonText}>Next Level</Text>
+            <Text style={styles.buttonText}>Next Level</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (showIntroScreen) {
+    return (
+      <SafeAreaView style={styles.foundationIntroContainer} edges={['left', 'right']}>
+        <View style={styles.foundationIntroInner}>
+
+          <Text style={styles.leveloneIndicatorText}>Level 3: The Windows</Text>
+
+          <Text style={styles.foundationIntroText}>
+            As the walls closed in, openings became essential.
+
+            {'\n'}{'\n'}
+
+            Windows were carefully placed — not just to frame views, but to guide light and
+            air through the home.
+          </Text>
+
+          <TouchableOpacity
+            onPress={() => setShowIntroScreen(false)}
+            style={styles.foundationIntroButton}
+          >
+            <Text style={styles.foundationIntroButtonText}>Continue</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -203,144 +260,67 @@ export default function WindowsScreen({ onNext }: WindowsScreenProps) {
 
   return (
     <View style={{ flex: 1 }}>
-      <View style={styles.screen}>
-        <Text style={styles.pageLabel}>Building Page</Text>
+      <ImageBackground
+        source={BackgroundImage}
+        style={StyleSheet.absoluteFillObject}
+        resizeMode="cover"
+      >
+        <View style={styles.screen}>
+          <Text style={styles.pageLabel}>Building Page</Text>
 
-        <View style={styles.canvas}>
+          <View style={styles.canvas}>
             <View style={styles.levelIndicator}>
-                <Text style={styles.levelIndicatorText}>Level 3</Text>
+              <Text style={styles.levelIndicatorText}>Level 3</Text>
             </View>
 
-          <View style={styles.optionCard}>
-            <Text style={styles.optionTitle}>
-              Select the{'\n'}correct window material
-            </Text>
-
-            {windowOptions.map((option) => {
-              const isSelected = selectedOption === option.id;
-              const SvgImage = option.image;
-
-              return (
-                <Pressable
-                  key={option.id}
-                  onPress={() => handleOptionSelect(option.id)}
-                  style={[
-                    styles.optionItem,
-                    isSelected && styles.optionItemSelected,
-                  ]}
-                >
-                  <View style={styles.iconWrapper}>
-                    <SvgImage
-                      width={option.width || 90}
-                      height={option.height || 60}
-                    />
-                  </View>
-
-                  <Text
-                    style={[
-                      styles.optionLabel,
-                      isSelected && styles.optionLabelSelected,
-                    ]}
-                  >
-                    {option.label}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
-
-          <View style={styles.buildArea}>
-            <View style={styles.infoBlock}>
-              <Text style={styles.infoText}>
-                As the walls closed in, openings became essential.{'\n'}
-                {'\n'}Windows were carefully placed — not just to frame views, but to guide light and
-                air through the home.
+            <View style={styles.optionCard}>
+              <Text style={styles.optionTitle}>
+                Select the{'\n'}correct window material
               </Text>
-            </View>
 
-            {!showBuildAnimation && !showWindow && (
-            <View style={styles.windWrapper}>
-                {showWind && (
-                <View style={styles.windExpanded}>
-                    <Text style={styles.windText}>Wind{'\n'}Durable</Text>
-                </View>
-                )}
+              {windowOptions.map((option) => {
+                const isSelected = selectedOption === option.id;
+                const SvgImage = option.image;
 
-                <TouchableOpacity
-                onPress={() => {
-                    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-                    setShowWind(!showWind);
-                }}
-                style={styles.windButtonOverlay}
-                >
-                <View style={styles.windButton}>
-                    <Text style={styles.windIcon}>💨</Text>
-                </View>
-                </TouchableOpacity>
-            </View>
-            )}
+                return (
+                  <Animated.View
+                    key={option.id}
+                    style={
+                      isSelected
+                        ? {
+                            transform: [{ scale: pulseAnim }],
+                          }
+                        : undefined
+                    }
+                  >
+                    <Pressable
+                      onPress={() => handleOptionSelect(option.id)}
+                      style={[
+                        styles.optionItem,
+                        isSelected && styles.optionItemSelected,
+                      ]}
+                    >
+                      <View style={styles.iconWrapper}>
+                        <SvgImage
+                          width={option.width || 90}
+                          height={option.height || 60}
+                        />
+                      </View>
 
-            {!showBuildAnimation && !showWindow && (
-            <View style={styles.tempWrapper}>
-                {showWind && (
-                <View style={styles.tempExpanded}>
-                    <Text style={styles.tempText}>Temperature{'\n'}Comfort</Text>
-                </View>
-                )}
+                      <Text
+                        style={[
+                          styles.optionLabel,
+                          isSelected && styles.optionLabelSelected,
+                        ]}
+                      >
+                        {option.label}
+                      </Text>
+                    </Pressable>
+                  </Animated.View>
+                );
+              })}
 
-                <TouchableOpacity
-                onPress={() => {
-                    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-                    setShowWind(!showWind);
-                }}
-                style={styles.tempButtonOverlay}
-                >
-                <View style={styles.tempButton}>
-                    <Text style={styles.tempIcon}>🌡️</Text>
-                </View>
-                </TouchableOpacity>
-            </View>
-            )}
-
-            <View style={styles.windowWrapper}>
-              {!showBuildAnimation && !showWindow && (
-                <View style={styles.wallBasePosition}>
-                  <View style={styles.openingWallImage}>
-                    <WallBase width={736} height={378} />
-                    </View>
-                </View>
-              )}
-
-              {showBuildAnimation && (
-                <LottieView
-                  source={require('../assets/Hammer animation.json')}
-                  autoPlay
-                  loop={true}
-                  speed={0.8}
-                  colorFilters={[
-                    {
-                      keypath: 'Shape Layer 1',
-                      color: '#AE5037',
-                    },
-                  ]}
-                  style={styles.buildAnimation}
-                />
-              )}
-
-              {!showBuildAnimation && renderWindowImage()}
-            </View>
-
-            <View style={styles.bottomRow}>
               <View style={styles.hintWrapper}>
-                {showHint && (
-                  <View style={styles.hintExpanded}>
-                    <Text style={styles.hintText}>
-                      These openings do more than let you see outside — think about light, airflow,
-                      and daily life before electricity.
-                    </Text>
-                  </View>
-                )}
-
                 <TouchableOpacity
                   onPress={() => {
                     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -353,16 +333,73 @@ export default function WindowsScreen({ onNext }: WindowsScreenProps) {
                   </View>
                 </TouchableOpacity>
               </View>
+            </View>
 
-              <TouchableOpacity activeOpacity={1}>
-                <View style={styles.nextButton}>
-                  <Text style={styles.nextButtonText}>Level 3</Text>
+            <View
+              pointerEvents="none"
+              style={[
+                styles.hintIndicator,
+                showHint && styles.hintIndicatorExpanded,
+              ]}
+            >
+              {showHint && (
+                <Text style={styles.hintIndicatorText}>
+                  These openings do more than let you see outside — think about light, airflow,
+                  and daily life before electricity.
+                </Text>
+              )}
+            </View>
+
+            <View style={styles.buildArea}>
+              {showCrackedWindow && selectedOption !== correctAnswer && (
+                <View style={styles.infoBlock}>
+                  <Text style={styles.infoText}>
+                    Oops, you have chosen the incorrect building material.{'\n'}Please reflect on the hint and try again!
+                  </Text>
                 </View>
-              </TouchableOpacity>
+              )}
+
+              <View pointerEvents="none" style={styles.windowWrapper}>
+                {!showBuildAnimation && !showWindow && (
+                  <View style={styles.wallBasePosition}>
+                    <View style={styles.openingWallImage}>
+                      <WallBase width={736} height={378} />
+                    </View>
+                  </View>
+                )}
+
+                {showBuildAnimation && (
+                  <LottieView
+                    source={require('../assets/Hammer animation.json')}
+                    autoPlay
+                    loop={true}
+                    speed={0.8}
+                    colorFilters={[
+                      {
+                        keypath: 'Shape Layer 1',
+                        color: '#AE5037',
+                      },
+                    ]}
+                    style={styles.buildAnimation}
+                  />
+                )}
+
+                {!showBuildAnimation && renderWindowImage()}
+              </View>
+
+              {showCompletedButton && (
+                <TouchableOpacity activeOpacity={1}>
+                  <View style={[styles.nextButton, styles.completedButton]}>
+                    <Text style={[styles.nextButtonText, styles.completedButtonText]}>
+                      Build Completed
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              )}
             </View>
           </View>
         </View>
-      </View>
+      </ImageBackground>
     </View>
   );
 }
@@ -370,23 +407,24 @@ export default function WindowsScreen({ onNext }: WindowsScreenProps) {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: '#F4F1EA',
+    backgroundColor: '#f4f1ea4e',
     paddingHorizontal: 28,
     paddingTop: 18,
     paddingBottom: 22,
   },
   pageLabel: {
     fontFamily: 'Quicksand',
-    color: '#F4F1EA',
+    color: 'transparent',
     fontSize: 18,
     marginBottom: 14,
   },
   canvas: {
     flex: 1,
-    backgroundColor: '#F4F1EA',
+    backgroundColor: 'transparent',
     flexDirection: 'row',
+    position: 'relative',
   },
-   optionCard: {
+  optionCard: {
     width: 150,
     marginLeft: -10,
     marginTop: -30,
@@ -400,6 +438,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.14,
     shadowRadius: 8,
+    zIndex: 2,
     elevation: 5,
   },
   optionTitle: {
@@ -423,12 +462,11 @@ const styles = StyleSheet.create({
     paddingTop: 8,
   },
   optionItemSelected: {
-    transform: [{ scale: 1.15 }],
-    shadowColor: '#000',
+    shadowColor: '#C77754',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 6,
-    elevation: 6,
+    shadowOpacity: 15,
+    shadowRadius: 8,
+    elevation: 10,
   },
   iconWrapper: {
     height: 60,
@@ -455,10 +493,10 @@ const styles = StyleSheet.create({
     paddingBottom: 26,
   },
   infoBlock: {
-    height: 80,
+    height: 70,
     marginTop: -30,
     maxWidth: 502,
-    backgroundColor: '#F4F1EA',
+    backgroundColor: '#AE5037',
     borderRadius: 28,
     paddingHorizontal: 24,
     justifyContent: 'center',
@@ -470,65 +508,84 @@ const styles = StyleSheet.create({
   },
   infoText: {
     fontFamily: 'Quicksand',
-    fontSize: 10,
-    color: '#53443D',
+    fontSize: 12,
+    color: '#F4F1EA',
     paddingTop: 10,
     paddingBottom: 10,
-  },
-  bottomRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    lineHeight: 18,
+    fontWeight: '500',
   },
   hintButton: {
-    width: 50,
-    height: 50,
-    borderRadius: 33,
-    backgroundColor: '#AE5037',
+    width: 60,
+    height: 55,
+    borderTopRightRadius: 100,
+    borderBottomRightRadius: 100,
+    borderTopLeftRadius: 100,
+    borderBottomLeftRadius: 0,
+    backgroundColor: '#F4F1EA',
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: 0,
+    marginLeft: 30,
+  },
+  hintIndicator: {
+    position: 'absolute',
+    left: 175,
+    bottom: 0,
+    width: 80,
+    height: 55,
+    borderRadius: 100,
+    backgroundColor: '#F4F1EA',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.14,
-    shadowRadius: 6,
-    elevation: 5,
+    shadowRadius: 8,
+    elevation: 1,
+    zIndex: 1,
   },
   hintIcon: {
     fontSize: 25,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  hintExpanded: {
-    height: 50,
-    width: 480,
-    backgroundColor: '#AE5037',
-    borderRadius: 40,
-    justifyContent: 'center',
-    paddingHorizontal: 60,
+    marginLeft: -10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.14,
-    shadowRadius: 6,
+    shadowRadius: 8,
     elevation: 5,
   },
-  hintText: {
-    color: '#F4F1EA',
+  hintIndicatorExpanded: {
+    width: 500,
+  },
+  hintIndicatorText: {
     fontFamily: 'Quicksand',
     fontSize: 12,
+    color: '#AE5037',
+    paddingLeft: 90,
+    paddingRight: 24,
+    marginTop: 13,
+    fontWeight: '500',
   },
   hintWrapper: {
-    position: 'relative',
+    position: 'absolute',
+    left: 95,
+    bottom: 0,
     justifyContent: 'center',
-    marginBottom: -25,
+    alignItems: 'center',
+    zIndex: 10,
+    elevation: 10,
   },
   hintButtonOverlay: {
     position: 'absolute',
     left: 0,
-    zIndex: 2,
+    bottom: 0,
+    zIndex: 11,
+    elevation: 11,
   },
   nextButton: {
+    position: 'absolute',
+    right: 28,
+    bottom: -25,
     minWidth: 100,
-    maxHeight: 50,
+    maxHeight: 55,
     backgroundColor: '#F4F1EA',
     borderRadius: 40,
     paddingVertical: 13,
@@ -542,7 +599,6 @@ const styles = StyleSheet.create({
     elevation: 5,
     borderWidth: 1,
     borderColor: '#F4F1EA',
-    marginBottom: -25,
   },
   nextButtonText: {
     fontFamily: 'Quicksand',
@@ -567,7 +623,7 @@ const styles = StyleSheet.create({
   aluminiumWindowImage: {
     width: 740,
     height: 384,
-    marginTop: -25,
+    marginTop: 40,
     marginLeft: 0,
   },
   aluminiumWindowCrackedImage: {
@@ -579,7 +635,7 @@ const styles = StyleSheet.create({
   fullGlassImage: {
     width: 740,
     height: 384,
-    marginTop: -15,
+    marginTop: 40,
     marginLeft: 0,
   },
   fullGlassCrackedImage: {
@@ -591,23 +647,23 @@ const styles = StyleSheet.create({
   steelFramesImage: {
     width: 740,
     height: 384,
-    marginTop: 0,
+    marginTop: 40,
     marginLeft: 0,
   },
   steelFramesCrackedImage: {
     width: 740,
     height: 384,
-    marginTop: 5,
+    marginTop: 15,
     marginLeft: 0,
   },
   correctWindowImage: {
-  marginTop: -10,
-  marginLeft: 0,
-},
-openingWallImage: {
-  marginTop: -7,
-  marginLeft: 0,
-},
+    marginTop: 30,
+    marginLeft: 0,
+  },
+  openingWallImage: {
+    marginTop: 45,
+    marginLeft: 0,
+  },
   buildAnimation: {
     width: 180,
     height: 180,
@@ -658,155 +714,106 @@ openingWallImage: {
     fontWeight: '500',
   },
   button: {
-  backgroundColor: '#F4F1EA',
-  minWidth: 140,
-  paddingVertical: 14,
-  paddingHorizontal: 30,
-  borderRadius: 40,
-  alignItems: 'center',
-  justifyContent: 'center',
-  marginTop: 30,
-  shadowColor: '#000',
-  shadowOffset: { width: 0, height: 4 },
-  shadowOpacity: 0.25,
-  shadowRadius: 6,
-  elevation: 6,
-},
-
-buttonText: {
-  fontFamily: 'Quicksand',
-  fontSize: 18,
-  color: '#605C39',
-  fontWeight: '600',
-},
-levelIndicator: {
-  width: 90,
-  height: 110,
-  marginLeft: 25,
-  marginTop: -30,
-  marginRight: -35,
-  backgroundColor: '#F4F1EA',
-  borderRadius: 28,
-  alignItems: 'center',
-  justifyContent: 'center',
-  shadowColor: '#000',
-  shadowOffset: { width: 0, height: 2 },
-  shadowOpacity: 0.14,
-  shadowRadius: 8,
-  elevation: 5,
-},
-
-levelIndicatorText: {
-  fontFamily: 'Quicksand',
-  fontSize: 18,
-  color: '#53443D',
-  transform: [{ rotate: '-90deg' }],
-  marginLeft: -40,
-},
-windButton: {
-    width: 50,
-    height: 50,
-    borderRadius: 33,
-    backgroundColor: '#AE5037',
+    backgroundColor: '#F4F1EA',
+    minWidth: 140,
+    paddingVertical: 14,
+    paddingHorizontal: 30,
+    borderRadius: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 30,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 6,
+    marginBottom: 27,
+  },
+  buttonText: {
+    fontFamily: 'Quicksand',
+    fontSize: 18,
+    color: '#605C39',
+    fontWeight: '600',
+  },
+  levelIndicator: {
+    width: 90,
+    height: 110,
+    marginLeft: 25,
+    marginTop: -30,
+    marginRight: -35,
+    backgroundColor: '#F4F1EA',
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.14,
-    shadowRadius: 6,
+    shadowRadius: 8,
     elevation: 5,
   },
-  windIcon: {
-    fontSize: 25,
-    color: '#F4F1EA',
-  },
-  windWrapper: {
-  position: 'absolute',
-  top: 0,
-  right: 28,
-  width: 210,
-  height: 50,
-  justifyContent: 'center',
-  zIndex: 10,
-},
-
-windButtonOverlay: {
-  position: 'absolute',
-  right: 0,
-  top: 0,
-  zIndex: 2,
-},
-
-windExpanded: {
-  height: 50,
-  width: 164,
-  backgroundColor: '#AE5037',
-  borderRadius: 40,
-  justifyContent: 'center',
-  paddingLeft: 26,
-  paddingRight: 60,
-  shadowColor: '#000',
-  shadowOffset: { width: 0, height: 2 },
-  shadowOpacity: 0.14,
-  shadowRadius: 6,
-  elevation: 5,
-  marginLeft: 45,
-},
-  windText: {
-    color: '#F4F1EA',
+  levelIndicatorText: {
     fontFamily: 'Quicksand',
-    fontSize: 13,
+    fontSize: 18,
+    color: '#53443D',
+    transform: [{ rotate: '-90deg' }],
+    marginLeft: -40,
   },
-  tempWrapper: {
-  position: 'absolute',
-  top: 70,
-  right: 28,
-  width: 210,
-  height: 50,
-  justifyContent: 'center',
-  zIndex: 10,
-},
-tempButton: {
-    width: 50,
-    height: 50,
-    borderRadius: 33,
+  foundationIntroContainer: {
+    flex: 1,
     backgroundColor: '#AE5037',
+  },
+  foundationIntroInner: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 40,
+  },
+  completedButton: {
+    backgroundColor: '#799CB2',
+    borderColor: '#799CB2',
+  },
+  completedButtonText: {
+    color: '#F4F1EA',
+  },
+  leveloneIndicatorText: {
+    fontFamily: 'Quicksand',
+    fontSize: 30,
+    color: '#F4F1EA',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontWeight: '600',
+    marginBottom: 20,
+    marginTop: -60,
+  },
+  foundationIntroText: {
+    fontFamily: 'Quicksand',
+    fontSize: 18,
+    lineHeight: 28,
+    color: '#F4F1EA',
+    textAlign: 'center',
+    maxWidth: 700,
+    justifyContent: 'center',
+  },
+  foundationIntroButton: {
+    position: 'absolute',
+    bottom: 41,
+    backgroundColor: '#F4F1EA',
+    minWidth: 140,
+    paddingVertical: 14,
+    paddingHorizontal: 30,
+    borderRadius: 40,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.14,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
     shadowRadius: 6,
-    elevation: 5,
+    elevation: 6,
   },
-  tempIcon: {
-    fontSize: 25,
-    color: '#F4F1EA',
-  },
-  tempButtonOverlay: {
-  position: 'absolute',
-  right: 0,
-  top: 0,
-  zIndex: 2,
-},
-tempExpanded: {
-  height: 50,
-  width: 164,
-  backgroundColor: '#AE5037',
-  borderRadius: 40,
-  justifyContent: 'center',
-  paddingLeft: 26,
-  paddingRight: 60,
-  shadowColor: '#000',
-  shadowOffset: { width: 0, height: 2 },
-  shadowOpacity: 0.14,
-  shadowRadius: 6,
-  elevation: 5,
-  marginLeft: 45,
-},
-  tempText: {
-    color: '#F4F1EA',
+  foundationIntroButtonText: {
     fontFamily: 'Quicksand',
-    fontSize: 13,
+    fontSize: 18,
+    color: '#AE5037',
+    fontWeight: '600',
   },
 });
