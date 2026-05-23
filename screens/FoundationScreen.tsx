@@ -113,6 +113,7 @@ export default function FoundationScreen({ onNext }: FoundationScreenProps) {
     clearAllTimers();
 
     setSelectedOption(optionId);
+    setShowHint(false);
     setShowFoundation(false);
     setShowCrackedFoundation(false);
     setCountdown(null);
@@ -238,7 +239,7 @@ if (showIntroScreen) {
     <SafeAreaView style={styles.foundationIntroContainer} edges={['left', 'right']}>
       <View style={styles.foundationIntroInner}>
 
-        <Text style={styles.leveloneIndicatorText}>Level 1</Text>
+        <Text style={styles.leveloneIndicatorText}>Level 1: The Foundation</Text>
 
         <Text style={styles.foundationIntroText}>
           Before the walls could rise, the land had to be understood.
