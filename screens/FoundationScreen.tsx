@@ -56,7 +56,14 @@ export default function FoundationScreen({ onNext }: FoundationScreenProps) {
   const [showSuccessScreen, setShowSuccessScreen] = useState(false);
   const [showIntroScreen, setShowIntroScreen] = useState(true);
   const [showCompletedButton, setShowCompletedButton] = useState(false);
+  const [weatherUnlocked, setWeatherUnlocked] = useState(false);
 
+  const [showWind, setShowWind] = useState(false);
+  const [showTemp, setShowTemp] = useState(false);
+  const [showClimate, setShowClimate] = useState(false);
+  const [showAuth, setShowAuth] = useState(false);
+
+  const windPulseAnim = useRef(new Animated.Value(1)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const buildTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const crackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -66,6 +73,7 @@ export default function FoundationScreen({ onNext }: FoundationScreenProps) {
   const [fontsLoaded] = useFonts({
     Quicksand: require('../assets/fonts/Quicksand-VariableFont_wght.ttf'),
     MonteCarlo: require('../assets/fonts/MonteCarlo-Regular.ttf'),
+    MaterialSymbolsOutlined: require('../assets/fonts/MaterialSymbolsOutlined.ttf'),
   });
 
   if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -109,6 +117,27 @@ export default function FoundationScreen({ onNext }: FoundationScreenProps) {
     }
   }, [selectedOption]);
 
+  useEffect(() => {
+    if (weatherUnlocked) {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(windPulseAnim, {
+            toValue: 1.08,
+            duration: 700,
+            useNativeDriver: true,
+          }),
+          Animated.timing(windPulseAnim, {
+            toValue: 1,
+            duration: 700,
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+    } else {
+      windPulseAnim.setValue(1);
+    }
+  }, [weatherUnlocked]);
+
   const handleOptionSelect = (optionId: string) => {
     clearAllTimers();
 
@@ -121,6 +150,11 @@ export default function FoundationScreen({ onNext }: FoundationScreenProps) {
     setIsAnimatingBuild(true);
     setShowBuildAnimation(true);
     setShowCompletedButton(false);
+    setWeatherUnlocked(false);
+    setShowWind(false);
+    setShowTemp(false);
+    setShowClimate(false);
+    setShowAuth(false);
 
     buildTimeoutRef.current = setTimeout(() => {
       setShowBuildAnimation(false);
@@ -128,6 +162,8 @@ export default function FoundationScreen({ onNext }: FoundationScreenProps) {
       setIsAnimatingBuild(false);
 
       if (optionId === correctAnswer) {
+        setWeatherUnlocked(true);
+
         successTimeoutRef.current = setTimeout(() => {
           setShowCompletedButton(true);
 
@@ -154,9 +190,9 @@ export default function FoundationScreen({ onNext }: FoundationScreenProps) {
         }, 1000);
 
         crackTimeoutRef.current = setTimeout(() => {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-        setShowCrackedFoundation(true);
-        setCountdown(null);
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+          setShowCrackedFoundation(true);
+          setCountdown(null);
         }, FAILURE_TIMER_SECONDS * 1000);
       }
     }, BUILD_ANIMATION_DURATION);
@@ -164,17 +200,15 @@ export default function FoundationScreen({ onNext }: FoundationScreenProps) {
 
   if (!fontsLoaded) return null;
 
-  const isCorrect = selectedOption === correctAnswer;
-
   const renderFoundationImage = () => {
     if (!selectedOption || !showFoundation) return null;
 
     if (selectedOption === 'stone') {
-        return (
-            <View style={styles.stoneImage}>
-            <FoundationBase width={730} height={370} />
-            </View>
-        );
+      return (
+        <View style={styles.stoneImage}>
+          <FoundationBase width={730} height={370} />
+        </View>
+      );
     }
 
     if (selectedOption === 'brick') {
@@ -211,52 +245,52 @@ export default function FoundationScreen({ onNext }: FoundationScreenProps) {
   };
 
   if (showSuccessScreen) {
-  return (
-    <SafeAreaView style={styles.successContainer} edges={['left', 'right']}>
-      <View style={styles.successInner}>
+    return (
+      <SafeAreaView style={styles.successContainer} edges={['left', 'right']}>
+        <View style={styles.successInner}>
 
-        {/* foundation image */}
-        <View style={{ marginTop: 50, marginBottom: -30 }}>
-          <FoundationBase width={600} height={260} />
-        </View>
+          <View style={{ marginTop: 50, marginBottom: -30 }}>
+            <FoundationBase width={600} height={260} />
+          </View>
 
-        <Text style={styles.successText}>
-          Stone and local materials were chosen to anchor the building firmly into the earth,
-          protecting it from shifting ground and seasonal change. What lies below is what allows
-          everything above to endure.
-        </Text>
+          <Text style={styles.successText}>
+            Stone and local materials were chosen to anchor the building firmly into the earth,
+            protecting it from shifting ground and seasonal change. What lies below is what allows
+            everything above to endure.
+          </Text>
 
-        <TouchableOpacity onPress={onNext} style={styles.button}>
+          <TouchableOpacity onPress={onNext} style={styles.button}>
             <Text style={styles.buttonText}>Next Level</Text>
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
-  );
-}
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
-if (showIntroScreen) {
-  return (
-    <SafeAreaView style={styles.foundationIntroContainer} edges={['left', 'right']}>
-      <View style={styles.foundationIntroInner}>
+  if (showIntroScreen) {
+    return (
+      <SafeAreaView style={styles.foundationIntroContainer} edges={['left', 'right']}>
+        <View style={styles.foundationIntroInner}>
 
-        <Text style={styles.leveloneIndicatorText}>Level 1: The Foundation</Text>
+          <Text style={styles.leveloneIndicatorText}>Level 1: The Foundation</Text>
 
-        <Text style={styles.foundationIntroText}>
-          Before the walls could rise, the land had to be understood.
-          Groot Constantia was built on soil shaped by time, wind, and rain — and every decision began beneath the surface.
-          The foundation was not just about strength, but working with the environment, not against it.
-        </Text>
+          <Text style={styles.foundationIntroText}>
+            Before the walls could rise, the land had to be understood.
+            {'\n'} 
+            Groot Constantia was built on soil shaped by time, wind, and rain — and every decision began beneath the surface.
+            The foundation was not just about strength, but working with the environment, not against it.
+          </Text>
 
-        <TouchableOpacity
-          onPress={() => setShowIntroScreen(false)}
-          style={styles.foundationIntroButton}
-        >
-          <Text style={styles.foundationIntroButtonText}>Continue</Text>
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
-  );
-}
+          <TouchableOpacity
+            onPress={() => setShowIntroScreen(false)}
+            style={styles.foundationIntroButton}
+          >
+            <Text style={styles.foundationIntroButtonText}>Continue</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <View style={{ flex: 1 }}>
@@ -266,141 +300,199 @@ if (showIntroScreen) {
         resizeMode="cover"
       >
         <View style={styles.screen}>
-        <Text style={styles.pageLabel}>Building Page</Text>
+          <Text style={styles.pageLabel}>Building Page</Text>
 
-        <View style={styles.canvas}>
+          <View style={styles.canvas}>
             <View style={styles.levelIndicator}>
-                <Text style={styles.levelIndicatorText}>Level 1</Text>
+              <Text style={styles.levelIndicatorText}>Level 1</Text>
             </View>
 
-          <View style={styles.optionCard}>
-            <Text style={styles.optionTitle}>
-              Select the{'\n'}correct foundation material
-            </Text>
-
-            {foundationOptions.map((option) => {
-              const isSelected = selectedOption === option.id;
-              const SvgImage = option.image;
-
-              return (
-                <Animated.View
-                  key={option.id}
-                  style={
-                    isSelected
-                      ? {
-                          transform: [{ scale: pulseAnim }],
-                        }
-                      : undefined
-                  }
-                >
-                  <Pressable
-                  key={option.id}
-                  onPress={() => handleOptionSelect(option.id)}
-                  style={[
-                    styles.optionItem,
-                    isSelected && styles.optionItemSelected,
-                  ]}
-                >
-                  <View style={styles.iconWrapper}>
-                    <SvgImage
-                      width={option.width || 90}
-                      height={option.height || 60}
-                    />
-                  </View>
-
-                  <Text
-                    style={[
-                      styles.optionLabel,
-                      isSelected && styles.optionLabelSelected,
-                    ]}
-                  >
-                    {option.label}
-                  </Text>
-                </Pressable>
-              </Animated.View>
-
-                
-              );
-            })}
-
-            <View style={styles.hintWrapper}>
-              <TouchableOpacity
-                onPress={() => {
-                  LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-                  setShowHint(!showHint);
-                }}
-                style={styles.hintButtonOverlay}
-              >
-                <View style={styles.hintButton}>
-                  <Text style={styles.hintIcon}>💡</Text>
-                </View>
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          <View
-            pointerEvents="none"
-            style={[
-              styles.hintIndicator,
-              showHint && styles.hintIndicatorExpanded,
-            ]}
-          >
-            {showHint && (
-              <Text style={styles.hintIndicatorText}>
-                Think about what lies beneath — what kind of material would stay strong even when the ground shifts and moisture rises?
+            <View style={styles.optionCard}>
+              <Text style={styles.optionTitle}>
+                Select the{'\n'}correct foundation material
               </Text>
-            )}
-          </View>
 
-          <View style={styles.buildArea}>
-            {showCrackedFoundation && selectedOption !== correctAnswer && (
-              <View style={styles.infoBlock}>
-                <Text style={styles.infoText}>
-                  Oops, you have chosen the incorrect building material.{'\n'}Please reflect on the hint and try again!
-                </Text>
-              </View>
-            )}
+              {foundationOptions.map((option) => {
+                const isSelected = selectedOption === option.id;
+                const SvgImage = option.image;
 
-            <View pointerEvents="none" style={styles.foundationWrapper}>
-              {showBuildAnimation && (
-                <LottieView
-                  source={require('../assets/Hammer animation.json')}
-                  autoPlay
-                  loop={true}
-                  speed={0.8}
-                  colorFilters={[
-                    {
-                      keypath: 'Shape Layer 1',
-                      color: '#AE5037',
-                    },
-                  ]}
-                  style={styles.buildAnimation}
-                />
-              )}
+                return (
+                  <Animated.View
+                    key={option.id}
+                    style={
+                      isSelected
+                        ? {
+                            transform: [{ scale: pulseAnim }],
+                          }
+                        : undefined
+                    }
+                  >
+                    <Pressable
+                      key={option.id}
+                      onPress={() => handleOptionSelect(option.id)}
+                      style={[
+                        styles.optionItem,
+                        isSelected && styles.optionItemSelected,
+                      ]}
+                    >
+                      <View style={styles.iconWrapper}>
+                        <SvgImage
+                          width={option.width || 90}
+                          height={option.height || 60}
+                        />
+                      </View>
 
-              {!showBuildAnimation && renderFoundationImage()}
+                      <Text
+                        style={[
+                          styles.optionLabel,
+                          isSelected && styles.optionLabelSelected,
+                        ]}
+                      >
+                        {option.label}
+                      </Text>
+                    </Pressable>
+                  </Animated.View>
+                );
+              })}
 
-              {!showBuildAnimation &&
-                showFoundation &&
-                selectedOption !== correctAnswer &&
-                !showCrackedFoundation &&
-                countdown !== null && null}
-            </View>
-
-              {showCompletedButton && (
-                <TouchableOpacity activeOpacity={1}>
-                  <View style={[styles.nextButton, styles.completedButton]}>
-                    <Text style={[styles.nextButtonText, styles.completedButtonText]}>
-                      Build Completed
-                    </Text>
+              <View style={styles.hintWrapper}>
+                <TouchableOpacity
+                  activeOpacity={1}
+                  onPress={() => {
+                    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+                    setShowHint(!showHint);
+                  }}
+                  style={styles.hintButtonOverlay}
+                >
+                  <View style={styles.hintButton}>
+                    <Text style={styles.hintIcon}>💡</Text>
                   </View>
                 </TouchableOpacity>
+              </View>
+            </View>
+
+            <View
+              pointerEvents="none"
+              style={[
+                styles.hintIndicator,
+                showHint && styles.hintIndicatorExpanded,
+              ]}
+            >
+              {showHint && (
+                <Text style={styles.hintIndicatorText}>
+                  Think about what lies beneath — what kind of material would stay strong even when the ground shifts and moisture rises?
+                </Text>
               )}
+            </View>
+
+            <View style={styles.buildArea}>
+              {showCrackedFoundation && selectedOption !== correctAnswer && (
+                <View style={styles.infoBlock}>
+                  <Text style={styles.infoText}>
+                    Oops, you have chosen the incorrect building material.{'\n'}Please reflect on the hint and try again!
+                  </Text>
+                </View>
+              )}
+
+              <View pointerEvents="none" style={styles.foundationWrapper}>
+                {showBuildAnimation && (
+                  <LottieView
+                    source={require('../assets/Hammer animation.json')}
+                    autoPlay
+                    loop={true}
+                    speed={0.8}
+                    colorFilters={[
+                      {
+                        keypath: 'Shape Layer 1',
+                        color: '#AE5037',
+                      },
+                    ]}
+                    style={styles.buildAnimation}
+                  />
+                )}
+
+                {!showBuildAnimation && renderFoundationImage()}
+
+                {!showBuildAnimation &&
+                  showFoundation &&
+                  selectedOption !== correctAnswer &&
+                  !showCrackedFoundation &&
+                  countdown !== null && null}
+              </View>
+
+              <View style={styles.bottomRow}>
+                <View style={styles.bottomWeatherIcons}>
+                  <Animated.View
+                    style={{
+                      transform: [{ scale: windPulseAnim }],
+                    }}
+                  >
+                  <TouchableOpacity
+                    activeOpacity={1}
+                    disabled={!weatherUnlocked}
+                    onPress={() => {
+                      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+                      setShowWind(!showWind);
+                      setShowTemp(false);
+                      setShowClimate(false);
+                      setShowAuth(false);
+                      windPulseAnim.stopAnimation();
+                    }}
+                    style={styles.weatherConditionItem}
+                  >
+                    <View
+                      style={[
+                        styles.windButton,
+                        !weatherUnlocked && styles.weatherButtonDisabled,
+                      ]}
+                    >
+                      <Text style={styles.windIcon}>air</Text>
+                    </View>
+
+                    {showWind && weatherUnlocked && (
+                      <View style={styles.bottomWeatherExpanded}>
+                        <Text style={styles.bottomWeatherText}>Wind Durable</Text>
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                  </Animated.View>
+
+                  <TouchableOpacity
+                    activeOpacity={1}
+                    disabled
+                    style={styles.weatherConditionItem}
+                  >
+                    <View style={[styles.tempButton, styles.weatherButtonDisabled]}>
+                      <Text style={styles.tempIcon}>device_thermostat</Text>
+                    </View>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    activeOpacity={1}
+                    disabled
+                    style={styles.weatherConditionItem}
+                  >
+                    <View style={[styles.climateButton, styles.weatherButtonDisabled]}>
+                      <Text style={styles.climateIcon}>airwave</Text>
+                    </View>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    activeOpacity={1}
+                    disabled
+                    style={styles.weatherConditionItem}
+                  >
+                    <View style={[styles.authButton, styles.weatherButtonDisabled]}>
+                      <Text style={styles.authIcon}>verified</Text>
+                    </View>
+                  </TouchableOpacity>
+                </View>
+              </View>
             </View>
           </View>
         </View>
-  </ImageBackground>
-  </View>
+      </ImageBackground>
+    </View>
   );
 }
 
@@ -427,7 +519,7 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
 
- optionCard: {
+  optionCard: {
     width: 150,
     marginLeft: -10,
     marginTop: -30,
@@ -546,7 +638,6 @@ const styles = StyleSheet.create({
     elevation: 1,
     zIndex: 1,
   },
-
   hintIcon: {
     fontSize: 25,
     marginLeft: -10,
@@ -556,11 +647,9 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 5,
   },
-
   hintIndicatorExpanded: {
     width: 500,
   },
-
   hintIndicatorText: {
     fontFamily: 'Quicksand',
     fontSize: 12,
@@ -570,7 +659,6 @@ const styles = StyleSheet.create({
     marginTop: 13,
     fontWeight: '500',
   },
-
   hintWrapper: {
     position: 'absolute',
     left: 95,
@@ -612,7 +700,124 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: '#53443D',
   },
-    roofWrapper: {
+  bottomRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  bottomWeatherIcons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 20,
+    marginBottom: -25,
+    marginLeft: 140,
+        shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.14,
+    shadowRadius: 8,
+    zIndex: 2,
+    elevation: 5,
+  },
+  weatherConditionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  bottomWeatherExpanded: {
+    height: 50,
+    backgroundColor: '#605C39',
+    borderRadius: 40,
+    justifyContent: 'center',
+    paddingLeft: 18,
+    paddingRight: 22,
+    marginLeft: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.14,
+    shadowRadius: 6,
+    elevation: 5,
+  },
+  bottomWeatherText: {
+    color: '#F4F1EA',
+    fontFamily: 'Quicksand',
+    fontSize: 13,
+  },
+  windButton: {
+    width: 50,
+    height: 50,
+    borderRadius: 33,
+    backgroundColor: '#605C39',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.14,
+    shadowRadius: 6,
+    elevation: 5,
+  },
+  tempButton: {
+    width: 50,
+    height: 50,
+    borderRadius: 33,
+    backgroundColor: '#605C39',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.14,
+    shadowRadius: 6,
+    elevation: 5,
+  },
+  climateButton: {
+    width: 50,
+    height: 50,
+    borderRadius: 33,
+    backgroundColor: '#605C39',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.14,
+    shadowRadius: 6,
+    elevation: 5,
+  },
+  authButton: {
+    width: 50,
+    height: 50,
+    borderRadius: 33,
+    backgroundColor: '#605C39',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.14,
+    shadowRadius: 6,
+    elevation: 5,
+  },
+  weatherButtonDisabled: {
+    backgroundColor: '#605c3983',
+  },
+  windIcon: {
+    fontFamily: 'MaterialSymbolsOutlined',
+    fontSize: 28,
+    color: '#F4F1EA',
+  },
+  tempIcon: {
+    fontFamily: 'MaterialSymbolsOutlined',
+    fontSize: 28,
+    color: '#F4F1EA',
+  },
+  climateIcon: {
+    fontFamily: 'MaterialSymbolsOutlined',
+    fontSize: 28,
+    color: '#F4F1EA',
+  },
+  authIcon: {
+    fontFamily: 'MaterialSymbolsOutlined',
+    fontSize: 28,
+    color: '#F4F1EA',
+  },
+  roofWrapper: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
@@ -620,7 +825,7 @@ const styles = StyleSheet.create({
     marginBottom: -30,
     position: 'relative',
   },
-    roofPosition: {
+  roofPosition: {
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: -18,
@@ -639,7 +844,7 @@ const styles = StyleSheet.create({
     height: 370,
     marginLeft: 0,
     marginTop: 135,
-      shadowColor: '#000',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 14,
     shadowRadius: 8,
@@ -651,7 +856,7 @@ const styles = StyleSheet.create({
     height: 370,
     marginLeft: 0,
     marginTop: 65,
-      shadowColor: '#000',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 14,
     shadowRadius: 8,
@@ -663,7 +868,7 @@ const styles = StyleSheet.create({
     height: 370,
     marginLeft: 0,
     marginTop: 80,
-      shadowColor: '#000',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 14,
     shadowRadius: 8,
@@ -675,7 +880,7 @@ const styles = StyleSheet.create({
     height: 370,
     marginLeft: 0,
     marginTop: 100,
-      shadowColor: '#000',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 14,
     shadowRadius: 8,
@@ -687,7 +892,7 @@ const styles = StyleSheet.create({
     height: 370,
     marginLeft: 0,
     marginTop: 100,
-      shadowColor: '#000',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 14,
     shadowRadius: 8,
@@ -699,7 +904,7 @@ const styles = StyleSheet.create({
     height: 370,
     marginLeft: 0,
     marginTop: 60,
-      shadowColor: '#000',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 14,
     shadowRadius: 8,
@@ -709,7 +914,7 @@ const styles = StyleSheet.create({
   stoneImage: {
     marginTop: 32,
     marginLeft: 0,
-      shadowColor: '#000',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 14,
     shadowRadius: 8,
@@ -787,115 +992,98 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   button: {
-  backgroundColor: '#F4F1EA',
-  minWidth: 140,
-  paddingVertical: 14,
-  paddingHorizontal: 30,
-  borderRadius: 40,
-  alignItems: 'center',
-  justifyContent: 'center',
-  marginTop: 40,
-  shadowColor: '#000',
-  shadowOffset: { width: 0, height: 4 },
-  shadowOpacity: 0.25,
-  shadowRadius: 6,
-  elevation: 6,
-},
-
-buttonText: {
-  fontFamily: 'Quicksand',
-  fontSize: 18,
-  color: '#605C39',
-  fontWeight: '600',
-},
-levelIndicator: {
-  width: 90,
-  height: 110,
-  marginLeft: 25,
-  marginTop: -30,
-  marginRight: -35,
-  backgroundColor: '#F4F1EA',
-  borderRadius: 28,
-  alignItems: 'center',
-  justifyContent: 'center',
-  shadowColor: '#000',
-  shadowOffset: { width: 0, height: 2 },
-  shadowOpacity: 0.14,
-  shadowRadius: 8,
-  elevation: 5,
-},
-
-levelIndicatorText: {
-  fontFamily: 'Quicksand',
-  fontSize: 18,
-  color: '#53443D',
-  transform: [{ rotate: '-90deg' }],
-  marginLeft: -40,
-},
-
-foundationIntroContainer: {
-  flex: 1,
-  backgroundColor: '#AE5037',
-},
-
-foundationIntroInner: {
-  flex: 1,
-  alignItems: 'center',
-  justifyContent: 'center',
-  paddingHorizontal: 40,
-},
-
-completedButton: {
-  backgroundColor: '#799CB2',
-  borderColor: '#799CB2',
-},
-
-completedButtonText: {
-  color: '#F4F1EA',
-},
-
-leveloneIndicatorText: {
-  fontFamily: 'Quicksand',
-  fontSize: 30,
-  color: '#F4F1EA',
-  alignItems: 'center',
-  justifyContent: 'center',
-  fontWeight: '600',
-  marginBottom: 20,
-  marginTop: -60,
-},
-
-foundationIntroText: {
-  fontFamily: 'Quicksand',
-  fontSize: 18,
-  lineHeight: 28,
-  color: '#F4F1EA',
-  textAlign: 'center',
-  maxWidth: 700,
-  justifyContent: 'center',
-},
-
-foundationIntroButton: {
-  position: 'absolute',
-  bottom: 41,
-  backgroundColor: '#F4F1EA',
-  minWidth: 140,
-  paddingVertical: 14,
-  paddingHorizontal: 30,
-  borderRadius: 40,
-  alignItems: 'center',
-  justifyContent: 'center',
-  shadowColor: '#000',
-  shadowOffset: { width: 0, height: 4 },
-  shadowOpacity: 0.25,
-  shadowRadius: 6,
-  elevation: 6,
-},
-
-foundationIntroButtonText: {
-  fontFamily: 'Quicksand',
-  fontSize: 18,
-  color: '#AE5037',
-  fontWeight: '600',
-},
+    backgroundColor: '#F4F1EA',
+    minWidth: 140,
+    paddingVertical: 14,
+    paddingHorizontal: 30,
+    borderRadius: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 40,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 6,
+  },
+  buttonText: {
+    fontFamily: 'Quicksand',
+    fontSize: 18,
+    color: '#605C39',
+    fontWeight: '600',
+  },
+  levelIndicator: {
+    width: 90,
+    height: 110,
+    marginLeft: 25,
+    marginTop: -30,
+    marginRight: -35,
+    backgroundColor: '#F4F1EA',
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.14,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  levelIndicatorText: {
+    fontFamily: 'Quicksand',
+    fontSize: 18,
+    color: '#53443D',
+    transform: [{ rotate: '-90deg' }],
+    marginLeft: -40,
+  },
+  foundationIntroContainer: {
+    flex: 1,
+    backgroundColor: '#AE5037',
+  },
+  foundationIntroInner: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 40,
+  },
+  leveloneIndicatorText: {
+    fontFamily: 'Quicksand',
+    fontSize: 30,
+    color: '#F4F1EA',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontWeight: '600',
+    marginBottom: 20,
+    marginTop: -60,
+  },
+  foundationIntroText: {
+    fontFamily: 'Quicksand',
+    fontSize: 18,
+    lineHeight: 28,
+    color: '#F4F1EA',
+    textAlign: 'center',
+    maxWidth: 700,
+    justifyContent: 'center',
+  },
+  foundationIntroButton: {
+    position: 'absolute',
+    bottom: 41,
+    backgroundColor: '#F4F1EA',
+    minWidth: 140,
+    paddingVertical: 14,
+    paddingHorizontal: 30,
+    borderRadius: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 6,
+  },
+  foundationIntroButtonText: {
+    fontFamily: 'Quicksand',
+    fontSize: 18,
+    color: '#AE5037',
+    fontWeight: '600',
+  },
 });

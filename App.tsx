@@ -6,7 +6,6 @@ import WallsScreen from './screens/WallsScreen';
 import WindowsScreen from './screens/WindowsScreen';
 import RoofScreen from './screens/RoofScreen';
 import LastLevelScreen from './screens/LastLevelScreen';
-import CompletedBuildingScreen from './screens/CompletedBuildingScreen';
 import * as ScreenOrientation from 'expo-screen-orientation';
 
 type ScreenName =
@@ -16,8 +15,7 @@ type ScreenName =
   | 'walls'
   | 'windows'
   | 'roof'
-  | 'last'
-  | 'completed';
+  | 'last';
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<ScreenName>('splash');
@@ -53,8 +51,6 @@ export default function App() {
     case 'last':
       return <LastLevelScreen onNext={() => setCurrentScreen('completed')} />;
 
-    case 'completed':
-      return <CompletedBuildingScreen />;
 
     default:
         return (

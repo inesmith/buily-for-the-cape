@@ -1,18 +1,22 @@
-import { useEffect, useState } from 'react';
-import {
-  LayoutAnimation,
-  Platform,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  UIManager,
-  View,
-} from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { LayoutAnimation, Platform, StyleSheet, Text, TouchableOpacity, UIManager, View, Image} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
 import * as ScreenOrientation from 'expo-screen-orientation';
+import { ImageBackground } from 'react-native';
+import { Animated } from 'react-native';
+import { BlurView } from 'expo-blur';
+import * as Print from 'expo-print';
+import * as Sharing from 'expo-sharing';
+
+import Voucher from '../assets/voucher.png';
 
 import RoofBase from '../assets/roof.svg';
+import StoneFoundation from '../assets/foundation-stone.svg';
+import LimeWashedWalls from '../assets/lime-wall.svg';
+import ThatchedRoof from '../assets/thatched-roof.svg';
+import WoodenFrames from '../assets/wooden-frame.svg';
+import BackgroundImage from '../assets/bg.png';
 
 type LastLevelScreenProps = {
   onNext: () => void;
@@ -24,10 +28,14 @@ export default function LastLevelScreen({ onNext }: LastLevelScreenProps) {
   const [showTemp, setShowTemp] = useState(false);
   const [showClimate, setShowClimate] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
+  const [showIntroScreen, setShowIntroScreen] = useState(true);
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+  const [showVoucherScreen, setShowVoucherScreen] = useState(false);
 
   const [fontsLoaded] = useFonts({
     Quicksand: require('../assets/fonts/Quicksand-VariableFont_wght.ttf'),
     MonteCarlo: require('../assets/fonts/MonteCarlo-Regular.ttf'),
+    MaterialSymbolsOutlined: require('../assets/fonts/MaterialSymbolsOutlined.ttf'),
   });
 
   if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -42,10 +50,91 @@ export default function LastLevelScreen({ onNext }: LastLevelScreenProps) {
     };
   }, []);
 
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1.05,
+          duration: 700,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 700,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, []);
+
+  const handleSaveVoucherPdf = async () => {
+    const html = `
+      <html>
+        <body style="margin:0; padding:40px; background:#605C39; display:flex; justify-content:center; align-items:center;">
+          <img src="voucher.png" style="width:700px; height:auto;" />
+        </body>
+      </html>
+    `;
+
+    const { uri } = await Print.printToFileAsync({ html });
+
+    if (await Sharing.isAvailableAsync()) {
+      await Sharing.shareAsync(uri);
+    }
+  };
+
   if (!fontsLoaded) return null;
+
+  if (showIntroScreen) {
+    return (
+      <SafeAreaView style={styles.completedIntroContainer} edges={['left', 'right']}>
+        <View style={styles.completedIntroInner}>
+          <Text style={styles.completedIntroTitle}>Congratulations!</Text>
+
+          <Text style={styles.completedIntroText}>
+            The Groot Constantia Manor building is now complete.
+            {'\n'}Each layer worked with the Cape environment — from wind resistance and thermal comfort to climate response and architectural authenticity.
+          </Text>
+
+          <TouchableOpacity
+            onPress={() => setShowIntroScreen(false)}
+            style={styles.completedIntroButton}
+          >
+            <Text style={styles.completedIntroButtonText}>Continue</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (showVoucherScreen) {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: '#605C39' }]}>
+        <View style={styles.voucherScreenWrapper}>
+          <Image
+            source={Voucher}
+            style={styles.voucherImage}
+            resizeMode="contain"
+          />
+
+          <TouchableOpacity
+            onPress={handleSaveVoucherPdf}
+            style={styles.savePdfButton}
+          >
+            <Text style={styles.savePdfButtonText}>Save as PDF</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <View style={{ flex: 1 }}>
+      <ImageBackground
+        source={BackgroundImage}
+        style={StyleSheet.absoluteFillObject}
+        resizeMode="cover"
+      >
       <View style={styles.screen}>
         <Text style={styles.pageLabel}>Building Page</Text>
 
@@ -55,101 +144,44 @@ export default function LastLevelScreen({ onNext }: LastLevelScreenProps) {
           </View>
 
             <View style={styles.optionCard}>
-            <Text style={styles.optionTitle}>
+              <Text style={styles.optionTitle}>
                 The materials{'\n'}used to build{'\n'}Groot Constantia
-            </Text>
+              </Text>
 
-            <View style={styles.optionItemSelected}>
-                <Text style={styles.optionLabelSelected}>Roof Complete</Text>
-            </View>
+              <View style={styles.optionItem}>
+                <View style={styles.iconWrapper}>
+                  <StoneFoundation width={90} height={60} />
+                </View>
+                <Text style={styles.optionLabel}>Stone</Text>
+              </View>
+
+              <View style={styles.optionItem}>
+                <View style={styles.iconWrapper}>
+                  <LimeWashedWalls width={90} height={60} />
+                </View>
+                <Text style={styles.optionLabel}>Lime Washed</Text>
+              </View>
+
+              <View style={styles.optionItem}>
+                <View style={styles.iconWrapper}>
+                  <WoodenFrames width={90} height={70} />
+                </View>
+                <Text style={styles.optionLabel}>Wooden Frames</Text>
+              </View>
+
+              <View style={styles.optionItem}>
+                <View style={styles.iconWrapper}>
+                  <ThatchedRoof width={90} height={60} />
+                </View>
+                <Text style={styles.optionLabel}>Thatched Roof</Text>
+              </View>
             </View>
 
           <View style={styles.buildArea}>
             <View style={styles.infoBlock}>
               <Text style={styles.infoText}>
-                The building is now complete.{'\n'}
-                {'\n'}Each layer worked with the Cape environment — from wind resistance and thermal comfort to climate response and architectural authenticity.
+                This final view brings all environmental choices together into one completed Cape Dutch structure.
               </Text>
-            </View>
-
-            <View style={styles.windWrapper}>
-              {showWind && (
-                <View style={styles.windExpanded}>
-                  <Text style={styles.windText}>Wind{'\n'}Durable</Text>
-                </View>
-              )}
-
-              <TouchableOpacity
-                onPress={() => {
-                  LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-                  setShowWind(!showWind);
-                }}
-                style={styles.windButtonOverlay}
-              >
-                <View style={styles.windButton}>
-                  <Text style={styles.windIcon}>💨</Text>
-                </View>
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.tempWrapper}>
-              {showTemp && (
-                <View style={styles.tempExpanded}>
-                  <Text style={styles.tempText}>Temperature{'\n'}Comfort</Text>
-                </View>
-              )}
-
-              <TouchableOpacity
-                onPress={() => {
-                  LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-                  setShowTemp(!showTemp);
-                }}
-                style={styles.tempButtonOverlay}
-              >
-                <View style={styles.tempButton}>
-                  <Text style={styles.tempIcon}>🌡️</Text>
-                </View>
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.climateWrapper}>
-              {showClimate && (
-                <View style={styles.climateExpanded}>
-                  <Text style={styles.climateText}>Climate{'\n'}Control</Text>
-                </View>
-              )}
-
-              <TouchableOpacity
-                onPress={() => {
-                  LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-                  setShowClimate(!showClimate);
-                }}
-                style={styles.climateButtonOverlay}
-              >
-                <View style={styles.climateButton}>
-                  <Text style={styles.climateIcon}>❄️</Text>
-                </View>
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.authWrapper}>
-              {showAuth && (
-                <View style={styles.authExpanded}>
-                  <Text style={styles.authText}>Authenticity{'\n'}Check</Text>
-                </View>
-              )}
-
-              <TouchableOpacity
-                onPress={() => {
-                  LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-                  setShowAuth(!showAuth);
-                }}
-                style={styles.authButtonOverlay}
-              >
-                <View style={styles.authButton}>
-                  <Text style={styles.authIcon}>✓</Text>
-                </View>
-              </TouchableOpacity>
             </View>
 
             <View style={styles.roofWrapper}>
@@ -159,37 +191,116 @@ export default function LastLevelScreen({ onNext }: LastLevelScreenProps) {
             </View>
 
             <View style={styles.bottomRow}>
-              <View style={styles.hintWrapper}>
-                {showHint && (
-                  <View style={styles.hintExpanded}>
-                    <Text style={styles.hintText}>
-                      This final view brings all environmental choices together into one completed Cape Dutch structure.
-                    </Text>
-                  </View>
-                )}
 
-                <TouchableOpacity
-                  onPress={() => {
-                    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-                    setShowHint(!showHint);
-                  }}
-                  style={styles.hintButtonOverlay}
-                >
-                  <View style={styles.hintButton}>
-                    <Text style={styles.hintIcon}>💡</Text>
-                  </View>
-                </TouchableOpacity>
+          <View style={styles.bottomWeatherIcons}>
+
+            <TouchableOpacity
+              activeOpacity={1}
+              onPress={() => {
+                LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+                setShowWind(!showWind);
+                setShowTemp(false);
+                setShowClimate(false);
+                setShowAuth(false);
+              }}
+              style={styles.weatherConditionItem}
+            >
+              <View style={styles.windButton}>
+                <Text style={styles.windIcon}>air</Text>
               </View>
 
-              <TouchableOpacity onPress={onNext}>
-                <View style={styles.nextButton}>
-                  <Text style={styles.nextButtonText}>Claim Voucher</Text>
+              {showWind && (
+                <View style={styles.bottomWeatherExpanded}>
+                  <Text style={styles.bottomWeatherText}>Wind Durable</Text>
                 </View>
-              </TouchableOpacity>
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              activeOpacity={1}
+              onPress={() => {
+                LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+                setShowTemp(!showTemp);
+                setShowWind(false);
+                setShowClimate(false);
+                setShowAuth(false);
+              }}
+              style={styles.weatherConditionItem}
+            >
+              <View style={styles.tempButton}>
+                <Text style={styles.tempIcon}>device_thermostat</Text>
+              </View>
+
+              {showTemp && (
+                <View style={styles.bottomWeatherExpanded}>
+                  <Text style={styles.bottomWeatherText}>Temperature{'\n'}Comfort</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              activeOpacity={1}
+              onPress={() => {
+                LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+                setShowClimate(!showClimate);
+                setShowWind(false);
+                setShowTemp(false);
+                setShowAuth(false);
+              }}
+              style={styles.weatherConditionItem}
+            >
+              <View style={styles.climateButton}>
+                <Text style={styles.climateIcon}>airwave</Text>
+              </View>
+
+              {showClimate && (
+                <View style={styles.bottomWeatherExpanded}>
+                  <Text style={styles.bottomWeatherText}>Climate Control</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              activeOpacity={1}
+              onPress={() => {
+                LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+                setShowAuth(!showAuth);
+                setShowWind(false);
+                setShowTemp(false);
+                setShowClimate(false);
+              }}
+              style={styles.weatherConditionItem}
+            >
+              <View style={styles.authButton}>
+                <Text style={styles.authIcon}>verified</Text>
+              </View>
+
+              {showAuth && (
+                <View style={styles.bottomWeatherExpanded}>
+                  <Text style={styles.bottomWeatherText}>Authenticity {'\n'}Check</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+
+          </View>
+
+          <TouchableOpacity onPress={() => setShowVoucherScreen(true)}>
+            <Animated.View
+              style={[
+                styles.nextButton,
+                {
+                  transform: [{ scale: pulseAnim }],
+                },
+              ]}
+            >
+              <Text style={styles.nextButtonText}>Claim Voucher</Text>
+            </Animated.View>
+          </TouchableOpacity>
             </View>
           </View>
         </View>
       </View>
+    </ImageBackground>
     </View>
   );
 }
@@ -197,20 +308,20 @@ export default function LastLevelScreen({ onNext }: LastLevelScreenProps) {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: '#F4F1EA',
+    backgroundColor: '#f4f1ea4e',
     paddingHorizontal: 28,
     paddingTop: 18,
     paddingBottom: 22,
   },
   pageLabel: {
     fontFamily: 'Quicksand',
-    color: '#F4F1EA',
+    color: 'transparent',
     fontSize: 18,
     marginBottom: 14,
   },
   canvas: {
     flex: 1,
-    backgroundColor: '#F4F1EA',
+    backgroundColor: 'transparent',
     flexDirection: 'row',
   },
   optionCard: {
@@ -282,10 +393,10 @@ const styles = StyleSheet.create({
     paddingBottom: 26,
   },
   infoBlock: {
-    height: 80,
+    height: 70,
     marginTop: -30,
     maxWidth: 502,
-    backgroundColor: '#F4F1EA',
+    backgroundColor: '#799CB2',
     borderRadius: 28,
     paddingHorizontal: 24,
     justifyContent: 'center',
@@ -297,15 +408,18 @@ const styles = StyleSheet.create({
   },
   infoText: {
     fontFamily: 'Quicksand',
-    fontSize: 10,
-    color: '#53443D',
+    fontSize: 12,
+    color: '#F4F1EA',
     paddingTop: 10,
     paddingBottom: 10,
+    lineHeight: 18,
+    fontWeight: '500',
   },
     bottomRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+
   },
     hintButton: {
     width: 50,
@@ -370,25 +484,24 @@ const styles = StyleSheet.create({
   nextButton: {
     minWidth: 100,
     maxHeight: 50,
-    backgroundColor: '#F4F1EA',
+    backgroundColor: '#AE5037',
     borderRadius: 40,
     paddingVertical: 13,
-    paddingHorizontal: 30,
+    paddingHorizontal: 25,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.14,
+    shadowOpacity: 0.25,
     shadowRadius: 8,
     elevation: 5,
-    borderWidth: 1,
-    borderColor: '#F4F1EA',
     marginBottom: -25,
+    marginRight: 25,
   },
   nextButtonText: {
     fontFamily: 'Quicksand',
     fontSize: 18,
-    color: '#53443D',
+    color: '#F4F1EA',
   },
   levelIndicator: {
     width: 90,
@@ -477,7 +590,7 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 33,
-    backgroundColor: '#AE5037',
+    backgroundColor: '#605C39',
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
@@ -490,7 +603,7 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 33,
-    backgroundColor: '#AE5037',
+    backgroundColor: '#605C39',
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
@@ -503,7 +616,7 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 33,
-    backgroundColor: '#AE5037',
+    backgroundColor: '#605C39',
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
@@ -516,7 +629,7 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 33,
-    backgroundColor: '#AE5037',
+    backgroundColor: '#605C39',
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
@@ -525,82 +638,29 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 5,
   },
-  windIcon: {
-    fontSize: 25,
-    color: '#F4F1EA',
-  },
-  tempIcon: {
-    fontSize: 25,
-    color: '#F4F1EA',
-  },
-  climateIcon: {
-    fontSize: 25,
-    color: '#F4F1EA',
-  },
-  authIcon: {
-    fontSize: 25,
-    color: '#F4F1EA',
-  },
-  windExpanded: {
-    height: 50,
-    width: 164,
-    backgroundColor: '#AE5037',
-    borderRadius: 40,
-    justifyContent: 'center',
-    paddingLeft: 26,
-    paddingRight: 60,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.14,
-    shadowRadius: 6,
-    elevation: 5,
-    marginLeft: 45,
-  },
-  tempExpanded: {
-    height: 50,
-    width: 164,
-    backgroundColor: '#AE5037',
-    borderRadius: 40,
-    justifyContent: 'center',
-    paddingLeft: 26,
-    paddingRight: 60,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.14,
-    shadowRadius: 6,
-    elevation: 5,
-    marginLeft: 45,
-  },
-  climateExpanded: {
-    height: 50,
-    width: 164,
-    backgroundColor: '#AE5037',
-    borderRadius: 40,
-    justifyContent: 'center',
-    paddingLeft: 26,
-    paddingRight: 60,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.14,
-    shadowRadius: 6,
-    elevation: 5,
-    marginLeft: 45,
-  },
-  authExpanded: {
-    height: 50,
-    width: 164,
-    backgroundColor: '#AE5037',
-    borderRadius: 40,
-    justifyContent: 'center',
-    paddingLeft: 26,
-    paddingRight: 60,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.14,
-    shadowRadius: 6,
-    elevation: 5,
-    marginLeft: 45,
-  },
+windIcon: {
+  fontFamily: 'MaterialSymbolsOutlined',
+  fontSize: 28,
+  color: '#F4F1EA',
+},
+
+tempIcon: {
+  fontFamily: 'MaterialSymbolsOutlined',
+  fontSize: 28,
+  color: '#F4F1EA',
+},
+
+climateIcon: {
+  fontFamily: 'MaterialSymbolsOutlined',
+  fontSize: 28,
+  color: '#F4F1EA',
+},
+
+authIcon: {
+  fontFamily: 'MaterialSymbolsOutlined',
+  fontSize: 28,
+  color: '#F4F1EA',
+},
   windText: {
     color: '#F4F1EA',
     fontFamily: 'Quicksand',
@@ -621,4 +681,136 @@ const styles = StyleSheet.create({
     fontFamily: 'Quicksand',
     fontSize: 13,
   },
+  completedIntroContainer: {
+  flex: 1,
+  backgroundColor: '#AE5037',
+},
+
+completedIntroInner: {
+  flex: 1,
+  alignItems: 'center',
+  justifyContent: 'center',
+  paddingHorizontal: 40,
+},
+
+completedIntroTitle: {
+  fontFamily: 'Quicksand',
+  fontSize: 30,
+  color: '#F4F1EA',
+  fontWeight: '600',
+  marginBottom: 20,
+  marginTop: -60,
+},
+
+completedIntroText: {
+  fontFamily: 'Quicksand',
+  fontSize: 18,
+  lineHeight: 28,
+  color: '#F4F1EA',
+  textAlign: 'center',
+  maxWidth: 760,
+  marginBottom: 30,
+},
+
+completedIntroButton: {
+  position: 'absolute',
+  bottom: 41,
+  backgroundColor: '#F4F1EA',
+  minWidth: 140,
+  paddingVertical: 14,
+  paddingHorizontal: 30,
+  borderRadius: 40,
+  alignItems: 'center',
+  justifyContent: 'center',
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 4 },
+  shadowOpacity: 0.25,
+  shadowRadius: 6,
+  elevation: 6,
+},
+
+completedIntroButtonText: {
+  fontFamily: 'Quicksand',
+  fontSize: 18,
+  color: '#AE5037',
+  fontWeight: '600',
+},
+
+weatherRow: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  gap: 14,
+  marginBottom: -20,
+  marginLeft: 120,
+},
+
+weatherIcon: {
+  fontSize: 26,
+},
+
+bottomWeatherIcons: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  gap: 15,
+  marginBottom: -25,
+  marginLeft: 40,
+},
+
+weatherConditionItem: {
+  flexDirection: 'row',
+  alignItems: 'center',
+},
+
+bottomWeatherExpanded: {
+  height: 50,
+  backgroundColor: '#605C39',
+  borderRadius: 40,
+  justifyContent: 'center',
+  paddingLeft: 18,
+  paddingRight: 22,
+  marginLeft: 3,
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.14,
+  shadowRadius: 6,
+  elevation: 5,
+},
+
+bottomWeatherText: {
+  color: '#F4F1EA',
+  fontFamily: 'Quicksand',
+  fontSize: 13,
+},
+
+voucherImage: {
+  width: 700,
+  height: 400,
+  alignSelf: 'center',
+  marginTop: -30,
+},
+
+container: {
+  flex: 1,
+},
+
+voucherScreenWrapper: {
+  flex: 1,
+  alignItems: 'center',
+  justifyContent: 'center',
+},
+
+savePdfButton: {
+  backgroundColor: '#F4F1EA',
+  paddingVertical: 14,
+  paddingHorizontal: 30,
+  borderRadius: 40,
+  marginTop: -40,
+},
+
+savePdfButtonText: {
+  fontFamily: 'Quicksand',
+  fontSize: 16,
+  color: '#605C39',
+  fontWeight: '600',
+},
 });
