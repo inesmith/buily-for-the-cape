@@ -336,6 +336,10 @@ export default function WindowsScreen({ onNext }: WindowsScreenProps) {
                       onPress={() => handleOptionSelect(option.id)}
                       style={[
                         styles.optionItem,
+                        option.id === 'wooden-frames' && styles.woodenFramesOption,
+                        option.id === 'aluminium-frames' && styles.aluminiumFramesOption,
+                        option.id === 'glass-panels' && styles.glassPanelsOption,
+                        option.id === 'steel-frames' && styles.steelFramesOption,
                         isSelected && styles.optionItemSelected,
                       ]}
                     >
@@ -349,6 +353,10 @@ export default function WindowsScreen({ onNext }: WindowsScreenProps) {
                       <Text
                         style={[
                           styles.optionLabel,
+                          option.id === 'wooden-frames' && styles.woodenFramesOptionText,
+                          option.id === 'aluminium-frames' && styles.aluminiumFramesOptionText,
+                          option.id === 'glass-panels' && styles.glassPanelsOptionText,
+                          option.id === 'steel-frames' && styles.steelFramesOptionText,
                           isSelected && styles.optionLabelSelected,
                         ]}
                       >
@@ -616,6 +624,39 @@ const styles = StyleSheet.create({
     fontFamily: 'Quicksand',
     fontSize: 10,
     color: '#C77754',
+  },
+
+  woodenFramesOption: {
+    marginTop: -10,
+    marginLeft: 0,
+  },
+  woodenFramesOptionText: {
+    marginTop: 0,
+    marginLeft: -5,
+  },
+  aluminiumFramesOption: {
+    marginTop: -8,
+    marginLeft: 5,
+  },
+  aluminiumFramesOptionText: {
+    marginTop: 0,
+    marginLeft: -10,
+  },
+  glassPanelsOption: {
+    marginTop: -4,
+    marginLeft: 5,
+  },
+  glassPanelsOptionText: {
+    marginTop: -10,
+    marginLeft: -10,
+  },
+  steelFramesOption: {
+    marginTop: -15,
+    marginLeft: 0,
+  },
+  steelFramesOptionText: {
+    marginTop: -5,
+    marginLeft: -10,
   },
   optionLabelSelected: {
     color: '#AE5037',

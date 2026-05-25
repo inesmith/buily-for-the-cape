@@ -225,6 +225,36 @@ export default function RoofScreen({ onNext }: RoofScreenProps) {
     }, BUILD_ANIMATION_DURATION);
   };
 
+  const getRoofOptionStyle = (optionId: string) => {
+    switch (optionId) {
+      case 'clay-tile':
+        return styles.clayTileOption;
+      case 'thatched':
+        return styles.thatchedOption;
+      case 'metal':
+        return styles.metalOption;
+      case 'concrete':
+        return styles.concreteOption;
+      default:
+        return null;
+    }
+  };
+
+  const getRoofOptionTextStyle = (optionId: string) => {
+    switch (optionId) {
+      case 'clay-tile':
+        return styles.clayTileOptionText;
+      case 'thatched':
+        return styles.thatchedOptionText;
+      case 'metal':
+        return styles.metalOptionText;
+      case 'concrete':
+        return styles.concreteOptionText;
+      default:
+        return null;
+    }
+  };
+
   if (!fontsLoaded) return null;
 
   const renderRoofImage = () => {
@@ -357,6 +387,7 @@ export default function RoofScreen({ onNext }: RoofScreenProps) {
                     onPress={() => handleOptionSelect(option.id)}
                     style={[
                       styles.optionItem,
+                      getRoofOptionStyle(option.id),
                       isSelected && styles.optionItemSelected,
                     ]}
                   >
@@ -370,6 +401,7 @@ export default function RoofScreen({ onNext }: RoofScreenProps) {
                     <Text
                       style={[
                         styles.optionLabel,
+                        getRoofOptionTextStyle(option.id),
                         isSelected && styles.optionLabelSelected,
                       ]}
                     >
@@ -645,6 +677,38 @@ canvas: {
   },
   optionLabelSelected: {
     color: '#AE5037',
+  },
+  clayTileOption: {
+    marginTop:-15,
+    marginLeft: 0,
+  },
+  clayTileOptionText: {
+    marginTop: 0,
+    marginLeft: 0,
+  },
+  thatchedOption: {
+    marginTop: -10,
+    marginLeft: 0,
+  },
+  thatchedOptionText: {
+    marginTop: 0,
+    marginLeft: 0,
+  },
+  metalOption: {
+    marginTop: -10,
+    marginLeft: 0,
+  },
+  metalOptionText: {
+    marginTop: 0,
+    marginLeft: 0,
+  },
+  concreteOption: {
+    marginTop: -10,
+    marginLeft: 0,
+  },
+  concreteOptionText: {
+    marginTop: -3,
+    marginLeft: 0,
   },
   buildArea: {
     flex: 1,

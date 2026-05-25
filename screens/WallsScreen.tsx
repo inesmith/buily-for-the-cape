@@ -392,7 +392,10 @@ export default function WallsScreen({ onNext }: WallsScreenProps) {
                       onPress={() => handleOptionSelect(option.id)}
                       style={[
                         styles.optionItem,
+                        option.id === 'concrete' && styles.concreteOption,
+                        option.id === 'exposedStone' && styles.exposedStoneOption,
                         option.id === 'limePlastered' && styles.limePlasteredOption,
+                        option.id === 'glass' && styles.glassOption,
                         isSelected && styles.optionItemSelected,
                       ]}
                     >
@@ -406,6 +409,10 @@ export default function WallsScreen({ onNext }: WallsScreenProps) {
                       <Text
                         style={[
                           styles.optionLabel,
+                          option.id === 'concrete' && styles.concreteOptionText,
+                          option.id === 'exposedStone' && styles.exposedStoneOptionText,
+                          option.id === 'limePlastered' && styles.limePlasteredOptionText,
+                          option.id === 'glass' && styles.glassOptionText,
                           isSelected && styles.optionLabelSelected,
                         ]}
                       >
@@ -644,10 +651,27 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
     paddingTop: 8,
   },
-  limePlasteredOption: {
+
+  concreteOption: {
     marginTop: -10,
+    marginLeft: 0,
+  },
+
+  exposedStoneOption: {
+    marginTop: -10,
+    marginLeft: 0,
+  },
+
+  limePlasteredOption: {
+    marginTop: -5,
     marginLeft: -15,
   },
+
+  glassOption: {
+    marginTop: 0,
+    marginLeft: 0,
+  },
+
   optionItemSelected: {
     shadowColor: '#C77754',
     shadowOffset: { width: 0, height: 4 },
@@ -670,6 +694,27 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: '#C77754',
   },
+
+  concreteOptionText: {
+    marginTop: 0,
+    marginLeft: 0,
+  },
+
+  exposedStoneOptionText: {
+    marginTop: 5,
+    marginLeft: 0,
+  },
+
+  limePlasteredOptionText: {
+    marginTop: 5,
+    marginLeft: 10,
+  },
+
+  glassOptionText: {
+    marginTop: 0,
+    marginLeft: -5,
+  },
+
   optionLabelSelected: {
     color: '#AE5037',
   },

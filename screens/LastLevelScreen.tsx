@@ -148,32 +148,32 @@ export default function LastLevelScreen({ onNext }: LastLevelScreenProps) {
                 The materials{'\n'}used to build{'\n'}Groot Constantia
               </Text>
 
-              <View style={styles.optionItem}>
+              <View style={[styles.optionItem, styles.stoneOption]}>
                 <View style={styles.iconWrapper}>
                   <StoneFoundation width={90} height={60} />
                 </View>
-                <Text style={styles.optionLabel}>Stone</Text>
+                <Text style={[styles.optionLabel, styles.stoneOptionText]}>Stone</Text>
               </View>
 
-              <View style={styles.optionItem}>
+              <View style={[styles.optionItem, styles.limeOption]}>
                 <View style={styles.iconWrapper}>
                   <LimeWashedWalls width={90} height={60} />
                 </View>
-                <Text style={styles.optionLabel}>Lime Washed</Text>
+                <Text style={[styles.optionLabel, styles.limeOptionText]}>Lime Washed</Text>
               </View>
 
-              <View style={styles.optionItem}>
+              <View style={[styles.optionItem, styles.woodenFramesOption]}>
                 <View style={styles.iconWrapper}>
                   <WoodenFrames width={90} height={70} />
                 </View>
-                <Text style={styles.optionLabel}>Wooden Frames</Text>
+                <Text style={[styles.optionLabel, styles.woodenFramesOptionText]}>Wooden Frames</Text>
               </View>
 
-              <View style={styles.optionItem}>
+              <View style={[styles.optionItem, styles.thatchedRoofOption]}>
                 <View style={styles.iconWrapper}>
                   <ThatchedRoof width={90} height={60} />
                 </View>
-                <Text style={styles.optionLabel}>Thatched Roof</Text>
+                <Text style={[styles.optionLabel, styles.thatchedRoofOptionText]}>Thatched Roof</Text>
               </View>
             </View>
 
@@ -385,6 +385,38 @@ const styles = StyleSheet.create({
   },
   optionLabelSelected: {
     color: '#AE5037',
+  },
+  stoneOption: {
+    marginTop: -10,
+    marginLeft: -5,
+  },
+  stoneOptionText: {
+    marginTop: 0,
+    marginLeft: 0,
+  },
+  limeOption: {
+    marginTop: -15,
+    marginLeft: -10,
+  },
+  limeOptionText: {
+    marginTop: 5,
+    marginLeft: 5,
+  },
+  woodenFramesOption: {
+    marginTop: -3,
+    marginLeft: 0,
+  },
+  woodenFramesOptionText: {
+    marginTop: 0,
+    marginLeft: 0,
+  },
+  thatchedRoofOption: {
+    marginTop: -13,
+    marginLeft: -5,
+  },
+  thatchedRoofOptionText: {
+    marginTop: 0,
+    marginLeft: 0,
   },
   buildArea: {
     flex: 1,
