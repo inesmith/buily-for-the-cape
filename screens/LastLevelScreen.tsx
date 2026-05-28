@@ -17,6 +17,7 @@ import LimeWashedWalls from '../assets/lime-wall.svg';
 import ThatchedRoof from '../assets/thatched-roof.svg';
 import WoodenFrames from '../assets/wooden-frame.svg';
 import BackgroundImage from '../assets/bg.png';
+import HomeScreen from './HomeScreen';
 
 type LastLevelScreenProps = {
   onNext: () => void;
@@ -111,19 +112,28 @@ export default function LastLevelScreen({ onNext }: LastLevelScreenProps) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: '#605C39' }]}>
         <View style={styles.voucherScreenWrapper}>
-          <Image
-            source={Voucher}
-            style={styles.voucherImage}
-            resizeMode="contain"
-          />
+        <Image
+          source={Voucher}
+          style={styles.voucherImage}
+          resizeMode="contain"
+        />
 
+        <View style={styles.voucherButtonsRow}>
           <TouchableOpacity
             onPress={handleSaveVoucherPdf}
             style={styles.savePdfButton}
           >
             <Text style={styles.savePdfButtonText}>Save as PDF</Text>
           </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={onNext}
+            style={styles.doneButton}
+          >
+            <Text style={styles.doneButtonText}>Completed</Text>
+          </TouchableOpacity>
         </View>
+      </View>
       </SafeAreaView>
     );
   }
@@ -836,13 +846,35 @@ savePdfButton: {
   paddingVertical: 14,
   paddingHorizontal: 30,
   borderRadius: 40,
-  marginTop: -40,
+  marginTop: 0,
 },
 
 savePdfButtonText: {
   fontFamily: 'Quicksand',
   fontSize: 16,
   color: '#605C39',
+  fontWeight: '600',
+},
+
+voucherButtonsRow: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: 16,
+  marginTop: -40,
+},
+
+doneButton: {
+  backgroundColor: '#AE5037',
+  paddingVertical: 14,
+  paddingHorizontal: 35,
+  borderRadius: 40,
+},
+
+doneButtonText: {
+  fontFamily: 'Quicksand',
+  fontSize: 16,
+  color: '#F4F1EA',
   fontWeight: '600',
 },
 });
