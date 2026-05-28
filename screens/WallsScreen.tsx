@@ -15,7 +15,7 @@ import WallBase from '../assets/wallBase.svg';
 import FoundationBase from '../assets/foundation.svg';
 import BackgroundImage from '../assets/bg.png';
 
-import ConcreteWallChosen from '../assets/exposedstone-wall-chosen.png';
+import ConcreteWallChosen from '../assets/concrete-wall-chosen.png';
 import ConcreteWallCracked from '../assets/concrete-wall-cracked.png';
 import ExposedStoneWallChosen from '../assets/exposedstone-wall-chosen.png';
 import ExposedStoneWallCracked from '../assets/exposedstone-wall-cracked.png';
@@ -63,6 +63,7 @@ export default function WallsScreen({ onNext }: WallsScreenProps) {
   const [showTemp, setShowTemp] = useState(false);
   const [showClimate, setShowClimate] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
+  const [shouldPulseHint, setShouldPulseHint] = useState(false);
 
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const windPulseAnim = useRef(new Animated.Value(1)).current;
@@ -212,6 +213,7 @@ export default function WallsScreen({ onNext }: WallsScreenProps) {
     setShowTemp(false);
     setShowClimate(false);
     setShowAuth(false);
+    setShouldPulseHint(false);
 
     buildTimeoutRef.current = setTimeout(() => {
       setShowBuildAnimation(false);
@@ -251,6 +253,7 @@ export default function WallsScreen({ onNext }: WallsScreenProps) {
         crackTimeoutRef.current = setTimeout(() => {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
           setShowCrackedWall(true);
+          setShouldPulseHint(true);
           setCountdown(null);
         }, FAILURE_TIMER_SECONDS * 1000);
       }
@@ -427,6 +430,7 @@ export default function WallsScreen({ onNext }: WallsScreenProps) {
                 <TouchableOpacity
                   activeOpacity={1}
                   onPress={() => {
+                    setShouldPulseHint(false);
                     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
                     setShowHint(!showHint);
                   }}
@@ -439,11 +443,22 @@ export default function WallsScreen({ onNext }: WallsScreenProps) {
               </View>
             </View>
 
-            <View
+            <Animated.View
               pointerEvents="none"
               style={[
                 styles.hintIndicator,
                 showHint && styles.hintIndicatorExpanded,
+
+                shouldPulseHint
+                  ? {
+                      transform: [{ scale: pulseAnim }],
+                      shadowColor: '#AE5037',
+                      shadowOpacity: 1,
+                    }
+                  : {
+                      shadowColor: '#000',
+                      shadowOpacity: 0.14,
+                    },
               ]}
             >
               {showHint && (
@@ -451,7 +466,7 @@ export default function WallsScreen({ onNext }: WallsScreenProps) {
                   Consider how a building protects itself from both heat and cold without relying on modern technology.
                 </Text>
               )}
-            </View>
+            </Animated.View>
 
             <View style={styles.buildArea}>
               {showCrackedWall && selectedOption !== correctAnswer && (
@@ -748,36 +763,36 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   hintButton: {
-    width: 60,
-    height: 55,
+    width: 50,
+    height: 50,
     borderTopRightRadius: 100,
     borderBottomRightRadius: 100,
     borderTopLeftRadius: 100,
-    borderBottomLeftRadius: 0,
+    borderBottomLeftRadius: 100,
     backgroundColor: 'transparent',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 0,
-    marginLeft: 30,
+    marginLeft: 85,
   },
   hintIndicator: {
     position: 'absolute',
-    left: 170,
+    left: 250,
     bottom: 0,
-    width: 100,
-    height: 55,
+    width: 50,
+    height: 50,
     borderRadius: 100,
-    backgroundColor: '#F4F1EA',
-    shadowColor: '#000',
+    backgroundColor: '#f4f1ea',
+    shadowColor: '#AE5037',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.14,
+    shadowOpacity: 14,
     shadowRadius: 8,
     elevation: 1,
     zIndex: 1,
   },
   hintIcon: {
     fontSize: 32,
-    marginLeft: 28,
+    marginLeft: 0,
     shadowColor: '#f76911',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 4,
@@ -791,7 +806,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Quicksand',
     fontSize: 12,
     color: '#AE5037',
-    paddingLeft: 90,
+    paddingLeft: 100,
     paddingRight: 24,
     marginTop: 13,
     fontWeight: '500',
@@ -838,20 +853,32 @@ const styles = StyleSheet.create({
     color: '#53443D',
   },
   bottomRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 10,
+  position: 'absolute',
+  top: 10,
+  right: 30,
+
+  flexDirection: 'column',
+  alignItems: 'center',
+  justifyContent: 'flex-start',
+
+  zIndex: 999,
+  elevation: 999,
   },
   bottomWeatherIcons: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     alignItems: 'center',
-    gap: 20,
+    gap: 15,
     marginBottom: -25,
     marginLeft: 140,
+        shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.14,
+    shadowRadius: 8,
+    zIndex: 2,
+    elevation: 5,
   },
   weatherConditionItem: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     alignItems: 'center',
   },
   bottomWeatherExpanded: {
@@ -965,13 +992,13 @@ const styles = StyleSheet.create({
   concreteWallCrackedImage: {
     width: 736,
     height: 378,
-    marginTop: 45,
+    marginTop: 0,
     marginLeft: 0,
   },
   limeWallImage: {
     width: 736,
     height: 378,
-    marginTop: 45,
+    marginTop: 25,
     marginLeft: 0,
   },
   exposedStoneWallImage: {
@@ -983,7 +1010,7 @@ const styles = StyleSheet.create({
   exposedStoneWallCrackedImage: {
     width: 736,
     height: 378,
-    marginTop: 45,
+    marginTop: 0,
     marginLeft: 0,
   },
   glassWallImage: {
@@ -995,11 +1022,11 @@ const styles = StyleSheet.create({
   glassWallCrackedImage: {
     width: 736,
     height: 378,
-    marginTop: 45,
+    marginTop: 0,
     marginLeft: 0,
   },
   openingFoundationImage: {
-    marginTop: 45,
+    marginTop: 35,
     marginLeft: 0,
   },
   buildAnimation: {

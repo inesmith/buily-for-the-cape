@@ -63,6 +63,7 @@ export default function FoundationScreen({ onNext }: FoundationScreenProps) {
   const [showClimate, setShowClimate] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
 
+  const [shouldPulseHint, setShouldPulseHint] = useState(false);
   const windPulseAnim = useRef(new Animated.Value(1)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const buildTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -155,6 +156,7 @@ export default function FoundationScreen({ onNext }: FoundationScreenProps) {
     setShowTemp(false);
     setShowClimate(false);
     setShowAuth(false);
+    setShouldPulseHint(false);
 
     buildTimeoutRef.current = setTimeout(() => {
       setShowBuildAnimation(false);
@@ -192,6 +194,7 @@ export default function FoundationScreen({ onNext }: FoundationScreenProps) {
         crackTimeoutRef.current = setTimeout(() => {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
           setShowCrackedFoundation(true);
+          setShouldPulseHint(true);
           setCountdown(null);
         }, FAILURE_TIMER_SECONDS * 1000);
       }
@@ -356,34 +359,46 @@ export default function FoundationScreen({ onNext }: FoundationScreenProps) {
               })}
 
               <View style={styles.hintWrapper}>
-                <TouchableOpacity
-                  activeOpacity={1}
-                  onPress={() => {
-                    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-                    setShowHint(!showHint);
-                  }}
-                  style={styles.hintButtonOverlay}
-                >
-                  <View style={styles.hintButton}>
-                    <Text style={styles.hintIcon}>💡</Text>
-                  </View>
-                </TouchableOpacity>
+                  <TouchableOpacity
+                    activeOpacity={1}
+                    onPress={() => {
+                      setShouldPulseHint(false);
+                      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+                      setShowHint(!showHint);
+                    }}
+                    style={styles.hintButtonOverlay}
+                  >
+                    <View style={styles.hintButton}>
+                      <Text style={styles.hintIcon}>💡</Text>
+                    </View>
+                  </TouchableOpacity>
               </View>
             </View>
 
-            <View
-              pointerEvents="none"
-              style={[
-                styles.hintIndicator,
-                showHint && styles.hintIndicatorExpanded,
-              ]}
-            >
+           <Animated.View
+            pointerEvents="none"
+            style={[
+              styles.hintIndicator,
+              showHint && styles.hintIndicatorExpanded,
+
+              shouldPulseHint
+                ? {
+                    transform: [{ scale: pulseAnim }],
+                    shadowColor: '#AE5037',
+                    shadowOpacity: 1,
+                  }
+                : {
+                    shadowColor: '#000',
+                    shadowOpacity: 0.14,
+                  },
+            ]}
+          >
               {showHint && (
                 <Text style={styles.hintIndicatorText}>
                   Think about what lies beneath — what kind of material would stay strong even when the ground shifts and moisture rises?
                 </Text>
               )}
-            </View>
+            </Animated.View>
 
             <View style={styles.buildArea}>
               {showCrackedFoundation && selectedOption !== correctAnswer && (
@@ -611,36 +626,36 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   hintButton: {
-    width: 60,
-    height: 55,
+    width: 50,
+    height: 50,
     borderTopRightRadius: 100,
     borderBottomRightRadius: 100,
     borderTopLeftRadius: 100,
-    borderBottomLeftRadius: 0,
+    borderBottomLeftRadius: 100,
     backgroundColor: 'transparent',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 0,
-    marginLeft: 40,
+    marginLeft: 85,
   },
   hintIndicator: {
     position: 'absolute',
-    left: 170,
+    left: 250,
     bottom: 0,
-    width: 100,
-    height: 55,
+    width: 50,
+    height: 50,
     borderRadius: 100,
     backgroundColor: '#f4f1ea',
-    shadowColor: '#000',
+    shadowColor: '#AE5037',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.14,
+    shadowOpacity: 14,
     shadowRadius: 8,
     elevation: 1,
     zIndex: 1,
   },
   hintIcon: {
     fontSize: 32,
-    marginLeft: 10,
+    marginLeft: 0,
     shadowColor: '#f76911',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 4,
@@ -701,15 +716,21 @@ const styles = StyleSheet.create({
     color: '#53443D',
   },
   bottomRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 10,
+  position: 'absolute',
+  top: 10,
+  right: 30,
+
+  flexDirection: 'column',
+  alignItems: 'center',
+  justifyContent: 'flex-start',
+
+  zIndex: 999,
+  elevation: 999,
   },
   bottomWeatherIcons: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     alignItems: 'center',
-    gap: 20,
+    gap: 15,
     marginBottom: -25,
     marginLeft: 140,
         shadowColor: '#000',
@@ -720,7 +741,7 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   weatherConditionItem: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     alignItems: 'center',
   },
   bottomWeatherExpanded: {
@@ -754,6 +775,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.14,
     shadowRadius: 6,
     elevation: 5,
+    marginBottom: 0,  
   },
   tempButton: {
     width: 50,
@@ -767,6 +789,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.14,
     shadowRadius: 6,
     elevation: 5,
+    marginBottom: 0,
   },
   climateButton: {
     width: 50,
@@ -780,6 +803,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.14,
     shadowRadius: 6,
     elevation: 5,
+    marginBottom: 0,
   },
   authButton: {
     width: 50,
@@ -793,6 +817,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.14,
     shadowRadius: 6,
     elevation: 5,
+    marginBottom: 0,
   },
   weatherButtonDisabled: {
     backgroundColor: '#999999',

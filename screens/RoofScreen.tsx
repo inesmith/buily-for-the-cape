@@ -65,6 +65,7 @@ export default function RoofScreen({ onNext }: RoofScreenProps) {
   const [showAuth, setShowAuth] = useState(false);
   const [climatePulseStopped, setClimatePulseStopped] = useState(false);
   const [authPulseStopped, setAuthPulseStopped] = useState(false);
+  const [shouldPulseHint, setShouldPulseHint] = useState(false);
 
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const weatherPulseAnim = useRef(new Animated.Value(1)).current;
@@ -182,6 +183,7 @@ export default function RoofScreen({ onNext }: RoofScreenProps) {
     setShowTemp(false);
     setShowClimate(false);
     setShowAuth(false);
+    setShouldPulseHint(false);
 
     buildTimeoutRef.current = setTimeout(() => {
       setShowBuildAnimation(false);
@@ -219,6 +221,7 @@ export default function RoofScreen({ onNext }: RoofScreenProps) {
         crackTimeoutRef.current = setTimeout(() => {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
           setShowCrackedRoof(true);
+          setShouldPulseHint(true);
           setCountdown(null);
         }, FAILURE_TIMER_SECONDS * 1000);
       }
@@ -416,6 +419,7 @@ export default function RoofScreen({ onNext }: RoofScreenProps) {
               <TouchableOpacity
                 activeOpacity={1}
                 onPress={() => {
+                  setShouldPulseHint(false);
                   LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
                   setShowHint(!showHint);
                 }}
@@ -428,11 +432,22 @@ export default function RoofScreen({ onNext }: RoofScreenProps) {
             </View>
           </View>
 
-          <View
+          <Animated.View
             pointerEvents="none"
             style={[
               styles.hintIndicator,
               showHint && styles.hintIndicatorExpanded,
+
+              shouldPulseHint
+                ? {
+                    transform: [{ scale: pulseAnim }],
+                    shadowColor: '#AE5037',
+                    shadowOpacity: 1,
+                  }
+                : {
+                    shadowColor: '#000',
+                    shadowOpacity: 0.14,
+                  },
             ]}
           >
             {showHint && (
@@ -440,7 +455,7 @@ export default function RoofScreen({ onNext }: RoofScreenProps) {
                 This final layer must stand against sun, wind, and rain — what shape and material would best protect everything below?
               </Text>
             )}
-          </View>
+          </Animated.View>
 
           <View style={styles.buildArea}>
             {showCrackedRoof && selectedOption !== correctAnswer && (
@@ -740,18 +755,24 @@ canvas: {
     fontWeight: '500',
   },
   bottomRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    position: 'absolute',
+    top: 10,
+    right: 30,
+
+    flexDirection: 'column',
     alignItems: 'center',
-    marginTop: 10,
+    justifyContent: 'flex-start',
+
+    zIndex: 999,
+    elevation: 999,
   },
   bottomWeatherIcons: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     alignItems: 'center',
     gap: 15,
     marginBottom: -25,
     marginLeft: 140,
-        shadowColor: '#000',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.14,
     shadowRadius: 8,
@@ -759,7 +780,7 @@ canvas: {
     elevation: 5,
   },
   weatherConditionItem: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     alignItems: 'center',
   },
   bottomWeatherExpanded: {
@@ -782,29 +803,29 @@ canvas: {
     fontSize: 13,
   },
   hintButton: {
-    width: 60,
-    height: 55,
+    width: 50,
+    height: 50,
     borderTopRightRadius: 100,
     borderBottomRightRadius: 100,
     borderTopLeftRadius: 100,
-    borderBottomLeftRadius: 0,
+    borderBottomLeftRadius: 100,
     backgroundColor: 'transparent',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 0,
-    marginLeft: 30,
+    marginLeft: 85,
   },
   hintIndicator: {
     position: 'absolute',
-    left: 170,
+    left: 250,
     bottom: 0,
-    width: 100,
-    height: 55,
+    width: 50,
+    height: 50,
     borderRadius: 100,
-    backgroundColor: '#F4F1EA',
-    shadowColor: '#000',
+    backgroundColor: '#f4f1ea',
+    shadowColor: '#AE5037',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.14,
+    shadowOpacity: 14,
     shadowRadius: 8,
     elevation: 1,
     zIndex: 1,
@@ -816,9 +837,10 @@ canvas: {
     fontFamily: 'Quicksand',
     fontSize: 12,
     color: '#AE5037',
-    paddingLeft: 90,
+    paddingLeft: 100,
     paddingRight: 24,
-    marginTop: 12,
+    marginTop: 13,
+    fontWeight: '500',
   },
   hintWrapper: {
     position: 'absolute',
@@ -838,7 +860,7 @@ canvas: {
   },
   hintIcon: {
     fontSize: 32,
-    marginLeft: 27,
+    marginLeft: 0,
     shadowColor: '#f76911',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 4,

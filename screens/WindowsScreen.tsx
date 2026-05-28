@@ -1,26 +1,26 @@
-import { useEffect, useRef, useState } from 'react';
-import { Image, Pressable, StyleSheet, Text, TouchableOpacity, View, LayoutAnimation, Platform, UIManager, Animated, ImageBackground, } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useFonts } from 'expo-font';
-import * as ScreenOrientation from 'expo-screen-orientation';
-import LottieView from 'lottie-react-native';
-import { BlurView } from 'expo-blur';
-import * as Haptics from 'expo-haptics';
+import { useEffect, useRef, useState } from "react";
+import { Image, Pressable, StyleSheet, Text, TouchableOpacity, View, LayoutAnimation, Platform, UIManager, Animated, ImageBackground, } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useFonts } from "expo-font";
+import * as ScreenOrientation from "expo-screen-orientation";
+import LottieView from "lottie-react-native";
+import { BlurView } from "expo-blur";
+import * as Haptics from "expo-haptics";
 
-import WoodenFames from '../assets/wooden-frame.svg';
-import AluminiumFrames from '../assets/aluminium-frame.svg';
-import FullGlassPanels from '../assets/full-glass.svg';
-import SteelFrames from '../assets/steel-frame.svg';
-import WindowBase from '../assets/windows.svg';
-import WallBase from '../assets/wallBase.svg';
-import BackgroundImage from '../assets/bg.png';
+import WoodenFames from "../assets/wooden-frame.svg";
+import AluminiumFrames from "../assets/aluminium-frame.svg";
+import FullGlassPanels from "../assets/full-glass.svg";
+import SteelFrames from "../assets/steel-frame.svg";
+import WindowBase from "../assets/windows.svg";
+import WallBase from "../assets/wallBase.svg";
+import BackgroundImage from "../assets/bg.png";
 
-import AluminiumFramesChosen from '../assets/aluminium-frames-chosen.png';
-import AluminiumFramesCracked from '../assets/aluminium-frames-cracked.png';
-import FullGlassChosen from '../assets/full-glass-chosen.png';
-import FullGlassCracked from '../assets/full-glass-cracked.png';
-import SteelFramesChosen from '../assets/steel-frames-chosen.png';
-import SteelFramesCracked from '../assets/steel-frames-cracked.png';
+import AluminiumFramesChosen from "../assets/aluminium-frames-chosen.png";
+import AluminiumFramesCracked from "../assets/aluminium-frames-cracked.png";
+import FullGlassChosen from "../assets/full-glass-chosen.png";
+import FullGlassCracked from "../assets/full-glass-cracked.png";
+import SteelFramesChosen from "../assets/steel-frames-chosen.png";
+import SteelFramesCracked from "../assets/steel-frames-cracked.png";
 
 type WindowsScreenProps = {
   onNext: () => void;
@@ -35,13 +35,13 @@ type WindowOption = {
 };
 
 const windowOptions = [
-  { id: 'wooden-frames', label: 'Wooden Frames', image: WoodenFames },
-  { id: 'aluminium-frames', label: 'Aluminium Frames', image: AluminiumFrames },
-  { id: 'glass-panels', label: 'Glass Panels', image: FullGlassPanels },
-  { id: 'steel-frames', label: 'Steel Frames', image: SteelFrames },
+  { id: "wooden-frames", label: "Wooden Frames", image: WoodenFames },
+  { id: "aluminium-frames", label: "Aluminium Frames", image: AluminiumFrames },
+  { id: "glass-panels", label: "Glass Panels", image: FullGlassPanels },
+  { id: "steel-frames", label: "Steel Frames", image: SteelFrames },
 ];
 
-const correctAnswer = 'wooden-frames';
+const correctAnswer = "wooden-frames";
 const BUILD_ANIMATION_DURATION = 5000;
 const FAILURE_TIMER_SECONDS = 3;
 const SUCCESS_DELAY = 1800;
@@ -63,29 +63,38 @@ export default function WindowsScreen({ onNext }: WindowsScreenProps) {
   const [showTemp, setShowTemp] = useState(false);
   const [showClimate, setShowClimate] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
-  const [activeWeatherPulse, setActiveWeatherPulse] = useState<'temp' | 'climate' | null>('temp');
+  const [activeWeatherPulse, setActiveWeatherPulse] = useState<
+    "temp" | "climate" | null
+  >("temp");
+  const [shouldPulseHint, setShouldPulseHint] = useState(false);
 
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const weatherPulseAnim = useRef(new Animated.Value(1)).current;
   const buildTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const crackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const countdownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const countdownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(
+    null,
+  );
   const successTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [fontsLoaded] = useFonts({
-    Quicksand: require('../assets/fonts/Quicksand-VariableFont_wght.ttf'),
-    MonteCarlo: require('../assets/fonts/MonteCarlo-Regular.ttf'),
-    MaterialSymbolsOutlined: require('../assets/fonts/MaterialSymbolsOutlined.ttf'),
+    Quicksand: require("../assets/fonts/Quicksand-VariableFont_wght.ttf"),
+    MonteCarlo: require("../assets/fonts/MonteCarlo-Regular.ttf"),
+    MaterialSymbolsOutlined: require("../assets/fonts/MaterialSymbolsOutlined.ttf"),
   });
 
-  if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  if (
+    Platform.OS === "android" &&
+    UIManager.setLayoutAnimationEnabledExperimental
+  ) {
     UIManager.setLayoutAnimationEnabledExperimental(true);
   }
 
   const clearAllTimers = () => {
     if (buildTimeoutRef.current) clearTimeout(buildTimeoutRef.current);
     if (crackTimeoutRef.current) clearTimeout(crackTimeoutRef.current);
-    if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+    if (countdownIntervalRef.current)
+      clearInterval(countdownIntervalRef.current);
     if (successTimeoutRef.current) clearTimeout(successTimeoutRef.current);
   };
 
@@ -112,7 +121,7 @@ export default function WindowsScreen({ onNext }: WindowsScreenProps) {
             duration: 700,
             useNativeDriver: true,
           }),
-        ])
+        ]),
       ).start();
     } else {
       pulseAnim.setValue(1);
@@ -135,7 +144,7 @@ export default function WindowsScreen({ onNext }: WindowsScreenProps) {
             duration: 700,
             useNativeDriver: true,
           }),
-        ])
+        ]),
       ).start();
     } else {
       weatherPulseAnim.setValue(1);
@@ -159,7 +168,7 @@ export default function WindowsScreen({ onNext }: WindowsScreenProps) {
     setShowTemp(false);
     setShowClimate(false);
     setShowAuth(false);
-    setActiveWeatherPulse('temp');
+    setActiveWeatherPulse("temp");
 
     buildTimeoutRef.current = setTimeout(() => {
       setShowBuildAnimation(false);
@@ -168,7 +177,7 @@ export default function WindowsScreen({ onNext }: WindowsScreenProps) {
 
       if (optionId === correctAnswer) {
         setClimateUnlocked(true);
-        setActiveWeatherPulse('climate');
+        setActiveWeatherPulse("climate");
 
         successTimeoutRef.current = setTimeout(() => {
           setShowCompletedButton(true);
@@ -198,6 +207,7 @@ export default function WindowsScreen({ onNext }: WindowsScreenProps) {
         crackTimeoutRef.current = setTimeout(() => {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
           setShowCrackedWindow(true);
+          setShouldPulseHint(true);
           setCountdown(null);
         }, FAILURE_TIMER_SECONDS * 1000);
       }
@@ -209,7 +219,7 @@ export default function WindowsScreen({ onNext }: WindowsScreenProps) {
   const renderWindowImage = () => {
     if (!selectedOption || !showWindow) return null;
 
-    if (selectedOption === 'wooden-frames') {
+    if (selectedOption === "wooden-frames") {
       return (
         <View style={styles.correctWindowImage}>
           <WindowBase width={736} height={378} />
@@ -217,31 +227,45 @@ export default function WindowsScreen({ onNext }: WindowsScreenProps) {
       );
     }
 
-    if (selectedOption === 'aluminium-frames') {
+    if (selectedOption === "aluminium-frames") {
       return (
         <Image
-          source={showCrackedWindow ? AluminiumFramesCracked : AluminiumFramesChosen}
-          style={showCrackedWindow ? styles.aluminiumWindowCrackedImage : styles.aluminiumWindowImage}
+          source={
+            showCrackedWindow ? AluminiumFramesCracked : AluminiumFramesChosen
+          }
+          style={
+            showCrackedWindow
+              ? styles.aluminiumWindowCrackedImage
+              : styles.aluminiumWindowImage
+          }
           resizeMode="contain"
         />
       );
     }
 
-    if (selectedOption === 'glass-panels') {
+    if (selectedOption === "glass-panels") {
       return (
         <Image
           source={showCrackedWindow ? FullGlassCracked : FullGlassChosen}
-          style={showCrackedWindow ? styles.fullGlassCrackedImage : styles.fullGlassImage}
+          style={
+            showCrackedWindow
+              ? styles.fullGlassCrackedImage
+              : styles.fullGlassImage
+          }
           resizeMode="contain"
         />
       );
     }
 
-    if (selectedOption === 'steel-frames') {
+    if (selectedOption === "steel-frames") {
       return (
         <Image
           source={showCrackedWindow ? SteelFramesCracked : SteelFramesChosen}
-          style={showCrackedWindow ? styles.steelFramesCrackedImage : styles.steelFramesImage}
+          style={
+            showCrackedWindow
+              ? styles.steelFramesCrackedImage
+              : styles.steelFramesImage
+          }
           resizeMode="contain"
         />
       );
@@ -252,16 +276,17 @@ export default function WindowsScreen({ onNext }: WindowsScreenProps) {
 
   if (showSuccessScreen) {
     return (
-      <SafeAreaView style={styles.successContainer} edges={['left', 'right']}>
+      <SafeAreaView style={styles.successContainer} edges={["left", "right"]}>
         <View style={styles.successInner}>
           <View style={{ marginTop: 50, marginBottom: -30 }}>
             <WindowBase width={620} height={300} />
           </View>
 
           <Text style={styles.successText}>
-            Wooden window frames offered balance — durable enough for the climate, yet practical to
-            shape and repair. Positioned carefully, these openings welcomed light and airflow while
-            protecting the home from harsher weather beyond.
+            Wooden window frames offered balance — durable enough for the
+            climate, yet practical to shape and repair. Positioned carefully,
+            these openings welcomed light and airflow while protecting the home
+            from harsher weather beyond.
           </Text>
 
           <TouchableOpacity onPress={onNext} style={styles.button}>
@@ -274,16 +299,18 @@ export default function WindowsScreen({ onNext }: WindowsScreenProps) {
 
   if (showIntroScreen) {
     return (
-      <SafeAreaView style={styles.foundationIntroContainer} edges={['left', 'right']}>
+      <SafeAreaView
+        style={styles.foundationIntroContainer}
+        edges={["left", "right"]}
+      >
         <View style={styles.foundationIntroInner}>
-
           <Text style={styles.leveloneIndicatorText}>Level 3: The Windows</Text>
 
           <Text style={styles.foundationIntroText}>
             As the walls closed in, openings became essential.
-            {'\n'} 
-            Windows were carefully placed — not just to frame views, but to guide light and
-            air through the home.
+            {"\n"}
+            Windows were carefully placed — not just to frame views, but to
+            guide light and air through the home.
           </Text>
 
           <TouchableOpacity
@@ -314,7 +341,7 @@ export default function WindowsScreen({ onNext }: WindowsScreenProps) {
 
             <View style={styles.optionCard}>
               <Text style={styles.optionTitle}>
-                Select the{'\n'}correct window material
+                Select the{"\n"}correct window material
               </Text>
 
               {windowOptions.map((option) => {
@@ -336,10 +363,14 @@ export default function WindowsScreen({ onNext }: WindowsScreenProps) {
                       onPress={() => handleOptionSelect(option.id)}
                       style={[
                         styles.optionItem,
-                        option.id === 'wooden-frames' && styles.woodenFramesOption,
-                        option.id === 'aluminium-frames' && styles.aluminiumFramesOption,
-                        option.id === 'glass-panels' && styles.glassPanelsOption,
-                        option.id === 'steel-frames' && styles.steelFramesOption,
+                        option.id === "wooden-frames" &&
+                          styles.woodenFramesOption,
+                        option.id === "aluminium-frames" &&
+                          styles.aluminiumFramesOption,
+                        option.id === "glass-panels" &&
+                          styles.glassPanelsOption,
+                        option.id === "steel-frames" &&
+                          styles.steelFramesOption,
                         isSelected && styles.optionItemSelected,
                       ]}
                     >
@@ -353,10 +384,14 @@ export default function WindowsScreen({ onNext }: WindowsScreenProps) {
                       <Text
                         style={[
                           styles.optionLabel,
-                          option.id === 'wooden-frames' && styles.woodenFramesOptionText,
-                          option.id === 'aluminium-frames' && styles.aluminiumFramesOptionText,
-                          option.id === 'glass-panels' && styles.glassPanelsOptionText,
-                          option.id === 'steel-frames' && styles.steelFramesOptionText,
+                          option.id === "wooden-frames" &&
+                            styles.woodenFramesOptionText,
+                          option.id === "aluminium-frames" &&
+                            styles.aluminiumFramesOptionText,
+                          option.id === "glass-panels" &&
+                            styles.glassPanelsOptionText,
+                          option.id === "steel-frames" &&
+                            styles.steelFramesOptionText,
                           isSelected && styles.optionLabelSelected,
                         ]}
                       >
@@ -371,7 +406,10 @@ export default function WindowsScreen({ onNext }: WindowsScreenProps) {
                 <TouchableOpacity
                   activeOpacity={1}
                   onPress={() => {
-                    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+                    setShouldPulseHint(false);
+                    LayoutAnimation.configureNext(
+                      LayoutAnimation.Presets.easeInEaseOut,
+                    );
                     setShowHint(!showHint);
                   }}
                   style={styles.hintButtonOverlay}
@@ -383,26 +421,38 @@ export default function WindowsScreen({ onNext }: WindowsScreenProps) {
               </View>
             </View>
 
-            <View
+            <Animated.View
               pointerEvents="none"
               style={[
                 styles.hintIndicator,
                 showHint && styles.hintIndicatorExpanded,
+
+                shouldPulseHint
+                  ? {
+                      transform: [{ scale: pulseAnim }],
+                      shadowColor: "#AE5037",
+                      shadowOpacity: 1,
+                    }
+                  : {
+                      shadowColor: "#000",
+                      shadowOpacity: 0.14,
+                    },
               ]}
             >
               {showHint && (
                 <Text style={styles.hintIndicatorText}>
-                  These openings do more than let you see outside — think about light, airflow,
-                  and daily life before electricity.
+                  These openings do more than let you see outside — think about
+                  light, airflow, and daily life before electricity.
                 </Text>
               )}
-            </View>
+            </Animated.View>
 
             <View style={styles.buildArea}>
               {showCrackedWindow && selectedOption !== correctAnswer && (
                 <View style={styles.infoBlock}>
                   <Text style={styles.infoText}>
-                    Oops, you have chosen the incorrect building material.{'\n'}Please reflect on the hint and try again!
+                    Oops, you have chosen the incorrect building material.{"\n"}
+                    Please reflect on the hint and try again!
                   </Text>
                 </View>
               )}
@@ -418,14 +468,14 @@ export default function WindowsScreen({ onNext }: WindowsScreenProps) {
 
                 {showBuildAnimation && (
                   <LottieView
-                    source={require('../assets/Hammer animation.json')}
+                    source={require("../assets/Hammer animation.json")}
                     autoPlay
                     loop={true}
                     speed={0.8}
                     colorFilters={[
                       {
-                        keypath: 'Shape Layer 1',
-                        color: '#AE5037',
+                        keypath: "Shape Layer 1",
+                        color: "#AE5037",
                       },
                     ]}
                     style={styles.buildAnimation}
@@ -437,7 +487,6 @@ export default function WindowsScreen({ onNext }: WindowsScreenProps) {
 
               <View style={styles.bottomRow}>
                 <View style={styles.bottomWeatherIcons}>
-
                   <TouchableOpacity
                     activeOpacity={1}
                     onPress={() => setShowWind(!showWind)}
@@ -460,13 +509,14 @@ export default function WindowsScreen({ onNext }: WindowsScreenProps) {
                     activeOpacity={1}
                     onPress={() => {
                       setShowTemp(!showTemp);
-                      if (activeWeatherPulse === 'temp') setActiveWeatherPulse(null);
+                      if (activeWeatherPulse === "temp")
+                        setActiveWeatherPulse(null);
                     }}
                     style={styles.weatherConditionItem}
                   >
                     <Animated.View
                       style={
-                        activeWeatherPulse === 'temp'
+                        activeWeatherPulse === "temp"
                           ? { transform: [{ scale: weatherPulseAnim }] }
                           : undefined
                       }
@@ -479,7 +529,7 @@ export default function WindowsScreen({ onNext }: WindowsScreenProps) {
                     {showTemp && (
                       <View style={styles.bottomWeatherExpanded}>
                         <Text style={styles.bottomWeatherText}>
-                          Temperature{'\n'}Comfort
+                          Temperature{"\n"}Comfort
                         </Text>
                       </View>
                     )}
@@ -491,14 +541,15 @@ export default function WindowsScreen({ onNext }: WindowsScreenProps) {
                     onPress={() => {
                       if (climateUnlocked) {
                         setShowClimate(!showClimate);
-                        if (activeWeatherPulse === 'climate') setActiveWeatherPulse(null);
+                        if (activeWeatherPulse === "climate")
+                          setActiveWeatherPulse(null);
                       }
                     }}
                     style={styles.weatherConditionItem}
                   >
                     <Animated.View
                       style={
-                        activeWeatherPulse === 'climate'
+                        activeWeatherPulse === "climate"
                           ? { transform: [{ scale: weatherPulseAnim }] }
                           : undefined
                       }
@@ -528,10 +579,7 @@ export default function WindowsScreen({ onNext }: WindowsScreenProps) {
                     style={styles.weatherConditionItem}
                   >
                     <View
-                      style={[
-                        styles.authButton,
-                        styles.weatherButtonDisabled,
-                      ]}
+                      style={[styles.authButton, styles.weatherButtonDisabled]}
                     >
                       <Text style={styles.authIcon}>verified</Text>
                     </View>
@@ -549,34 +597,34 @@ export default function WindowsScreen({ onNext }: WindowsScreenProps) {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: '#f4f1ea4e',
+    backgroundColor: "#f4f1ea4e",
     paddingHorizontal: 28,
     paddingTop: 18,
     paddingBottom: 22,
   },
   pageLabel: {
-    fontFamily: 'Quicksand',
-    color: 'transparent',
+    fontFamily: "Quicksand",
+    color: "transparent",
     fontSize: 18,
     marginBottom: 14,
   },
   canvas: {
     flex: 1,
-    backgroundColor: 'transparent',
-    flexDirection: 'row',
-    position: 'relative',
+    backgroundColor: "transparent",
+    flexDirection: "row",
+    position: "relative",
   },
   optionCard: {
     width: 150,
     marginLeft: -10,
     marginTop: -30,
     marginBottom: 0,
-    backgroundColor: '#F4F1EA',
+    backgroundColor: "#F4F1EA",
     borderRadius: 28,
     paddingVertical: 24,
     paddingHorizontal: 14,
-    alignItems: 'center',
-    shadowColor: '#000',
+    alignItems: "center",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.14,
     shadowRadius: 8,
@@ -584,27 +632,27 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   optionTitle: {
-    fontFamily: 'Quicksand',
+    fontFamily: "Quicksand",
     fontSize: 12,
     lineHeight: 15,
-    textAlign: 'center',
-    color: '#C77754',
+    textAlign: "center",
+    color: "#C77754",
     marginTop: -10,
     paddingBottom: 10,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   optionItem: {
-    width: '100%',
+    width: "100%",
     height: 90,
-    alignItems: 'center',
+    alignItems: "center",
     borderRadius: 18,
     marginTop: -10,
     borderWidth: 2,
-    borderColor: 'transparent',
+    borderColor: "transparent",
     paddingTop: 8,
   },
   optionItemSelected: {
-    shadowColor: '#C77754',
+    shadowColor: "#C77754",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 15,
     shadowRadius: 8,
@@ -612,8 +660,8 @@ const styles = StyleSheet.create({
   },
   iconWrapper: {
     height: 60,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   optionImage: {
     width: 90,
@@ -621,9 +669,9 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   optionLabel: {
-    fontFamily: 'Quicksand',
+    fontFamily: "Quicksand",
     fontSize: 10,
-    color: '#C77754',
+    color: "#C77754",
   },
 
   woodenFramesOption: {
@@ -652,18 +700,18 @@ const styles = StyleSheet.create({
   },
   steelFramesOption: {
     marginTop: -15,
-    marginLeft: 0,
+    marginLeft: 5,
   },
   steelFramesOptionText: {
     marginTop: -5,
     marginLeft: -10,
   },
   optionLabelSelected: {
-    color: '#AE5037',
+    color: "#AE5037",
   },
   buildArea: {
     flex: 1,
-    justifyContent: 'flex-end',
+    justifyContent: "flex-end",
     paddingHorizontal: 28,
     paddingBottom: 26,
   },
@@ -671,57 +719,57 @@ const styles = StyleSheet.create({
     height: 70,
     marginTop: -30,
     maxWidth: 502,
-    backgroundColor: '#AE5037',
+    backgroundColor: "#AE5037",
     borderRadius: 28,
     paddingHorizontal: 24,
-    justifyContent: 'center',
-    shadowColor: '#000',
+    justifyContent: "center",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.14,
     shadowRadius: 8,
     elevation: 5,
   },
   infoText: {
-    fontFamily: 'Quicksand',
+    fontFamily: "Quicksand",
     fontSize: 12,
-    color: '#F4F1EA',
+    color: "#F4F1EA",
     paddingTop: 10,
     paddingBottom: 10,
     lineHeight: 18,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   hintButton: {
-    width: 60,
-    height: 55,
+    width: 50,
+    height: 50,
     borderTopRightRadius: 100,
     borderBottomRightRadius: 100,
     borderTopLeftRadius: 100,
-    borderBottomLeftRadius: 0,
-    backgroundColor: 'transparent',
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderBottomLeftRadius: 100,
+    backgroundColor: "#F4F1EA",
+    alignItems: "center",
+    justifyContent: "center",
     marginBottom: 0,
-    marginLeft: 30,
+    marginLeft: 85,
   },
   hintIndicator: {
-    position: 'absolute',
-    left: 170,
+    position: "absolute",
+    left: 250,
     bottom: 0,
-    width: 100,
-    height: 55,
+    width: 50,
+    height: 50,
     borderRadius: 100,
-    backgroundColor: '#F4F1EA',
-    shadowColor: '#000',
+    backgroundColor: "#f4f1ea",
+    shadowColor: "#AE5037",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.14,
+    shadowOpacity: 14,
     shadowRadius: 8,
     elevation: 1,
     zIndex: 1,
   },
   hintIcon: {
     fontSize: 32,
-    marginLeft: 27,
-    shadowColor: '#f76911',
+    marginLeft: 0,
+    shadowColor: "#f76911",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 4,
     shadowRadius: 8,
@@ -731,68 +779,74 @@ const styles = StyleSheet.create({
     width: 500,
   },
   hintIndicatorText: {
-    fontFamily: 'Quicksand',
+    fontFamily: "Quicksand",
     fontSize: 12,
-    color: '#AE5037',
-    paddingLeft: 90,
+    color: "#AE5037",
+    paddingLeft: 100,
     paddingRight: 24,
     marginTop: 13,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   hintWrapper: {
-    position: 'absolute',
+    position: "absolute",
     left: 95,
     bottom: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     zIndex: 10,
     elevation: 10,
   },
   hintButtonOverlay: {
-    position: 'absolute',
+    position: "absolute",
     left: 0,
     bottom: 0,
     zIndex: 11,
     elevation: 11,
   },
   nextButton: {
-    position: 'absolute',
+    position: "absolute",
     right: 28,
     bottom: -25,
     minWidth: 100,
     maxHeight: 55,
-    backgroundColor: '#F4F1EA',
+    backgroundColor: "#F4F1EA",
     borderRadius: 40,
     paddingVertical: 13,
     paddingHorizontal: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.14,
     shadowRadius: 8,
     elevation: 5,
     borderWidth: 1,
-    borderColor: '#F4F1EA',
+    borderColor: "#F4F1EA",
   },
   nextButtonText: {
-    fontFamily: 'Quicksand',
+    fontFamily: "Quicksand",
     fontSize: 18,
-    color: '#53443D',
+    color: "#53443D",
   },
   bottomRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 10,
+    position: "absolute",
+    top: 10,
+    right: 30,
+
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "flex-start",
+
+    zIndex: 999,
+    elevation: 999,
   },
   bottomWeatherIcons: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 20,
+    flexDirection: "column",
+    alignItems: "center",
+    gap: 15,
     marginBottom: -25,
     marginLeft: 140,
-        shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.14,
     shadowRadius: 8,
@@ -800,36 +854,36 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   weatherConditionItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "column",
+    alignItems: "center",
   },
   bottomWeatherExpanded: {
     height: 50,
-    backgroundColor: '#605C39',
+    backgroundColor: "#605C39",
     borderRadius: 40,
-    justifyContent: 'center',
+    justifyContent: "center",
     paddingLeft: 18,
     paddingRight: 22,
     marginLeft: 8,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.14,
     shadowRadius: 6,
     elevation: 5,
   },
   bottomWeatherText: {
-    color: '#F4F1EA',
-    fontFamily: 'Quicksand',
+    color: "#F4F1EA",
+    fontFamily: "Quicksand",
     fontSize: 13,
   },
   windButton: {
     width: 50,
     height: 50,
     borderRadius: 33,
-    backgroundColor: '#605C39',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
+    backgroundColor: "#605C39",
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.14,
     shadowRadius: 6,
@@ -839,10 +893,10 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 33,
-    backgroundColor: '#605C39',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
+    backgroundColor: "#605C39",
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.14,
     shadowRadius: 6,
@@ -852,10 +906,10 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 33,
-    backgroundColor: '#605C39',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
+    backgroundColor: "#605C39",
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.14,
     shadowRadius: 6,
@@ -865,57 +919,57 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 33,
-    backgroundColor: '#605C39',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
+    backgroundColor: "#605C39",
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.14,
     shadowRadius: 6,
     elevation: 5,
   },
   weatherButtonDisabled: {
-    backgroundColor: '#605c3983',
+    backgroundColor: "#605c3983",
   },
   windIcon: {
-    fontFamily: 'MaterialSymbolsOutlined',
+    fontFamily: "MaterialSymbolsOutlined",
     fontSize: 28,
-    color: '#F4F1EA',
+    color: "#F4F1EA",
   },
   tempIcon: {
-    fontFamily: 'MaterialSymbolsOutlined',
+    fontFamily: "MaterialSymbolsOutlined",
     fontSize: 28,
-    color: '#F4F1EA',
+    color: "#F4F1EA",
   },
   climateIcon: {
-    fontFamily: 'MaterialSymbolsOutlined',
+    fontFamily: "MaterialSymbolsOutlined",
     fontSize: 28,
-    color: '#F4F1EA',
+    color: "#F4F1EA",
   },
   authIcon: {
-    fontFamily: 'MaterialSymbolsOutlined',
+    fontFamily: "MaterialSymbolsOutlined",
     fontSize: 28,
-    color: '#F4F1EA',
+    color: "#F4F1EA",
   },
   windowWrapper: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginLeft: -60,
     marginBottom: -30,
-    position: 'relative',
+    position: "relative",
   },
   wallBasePosition: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginTop: -11,
     marginLeft: -1,
   },
   aluminiumWindowImage: {
     width: 740,
     height: 384,
-    marginTop: 40,
+    marginTop: 20,
     marginLeft: 0,
   },
   aluminiumWindowCrackedImage: {
@@ -962,59 +1016,59 @@ const styles = StyleSheet.create({
   },
   successContainer: {
     flex: 1,
-    backgroundColor: '#605C39',
+    backgroundColor: "#605C39",
   },
   successInner: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     paddingHorizontal: 40,
     marginTop: -100,
   },
   successText: {
-    fontFamily: 'Quicksand',
+    fontFamily: "Quicksand",
     fontSize: 18,
     lineHeight: 28,
-    color: '#F4F1EA',
-    textAlign: 'center',
+    color: "#F4F1EA",
+    textAlign: "center",
     maxWidth: 760,
   },
   successButtonWrapper: {
     marginTop: 35,
   },
   successButton: {
-    overflow: 'hidden',
-    backgroundColor: 'rgba(244, 241, 234, 0.25)',
+    overflow: "hidden",
+    backgroundColor: "rgba(244, 241, 234, 0.25)",
     minWidth: 100,
     paddingVertical: 13,
     paddingHorizontal: 30,
     borderRadius: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.4)',
-    shadowColor: '#000',
+    borderColor: "rgba(255,255,255,0.4)",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.2,
     shadowRadius: 6,
     elevation: 6,
   },
   successButtonText: {
-    fontFamily: 'Quicksand',
+    fontFamily: "Quicksand",
     fontSize: 18,
-    color: '#605C39',
-    fontWeight: '500',
+    color: "#605C39",
+    fontWeight: "500",
   },
   button: {
-    backgroundColor: '#F4F1EA',
+    backgroundColor: "#F4F1EA",
     minWidth: 140,
     paddingVertical: 14,
     paddingHorizontal: 30,
     borderRadius: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginTop: 30,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
     shadowRadius: 6,
@@ -1022,10 +1076,10 @@ const styles = StyleSheet.create({
     marginBottom: 27,
   },
   buttonText: {
-    fontFamily: 'Quicksand',
+    fontFamily: "Quicksand",
     fontSize: 18,
-    color: '#605C39',
-    fontWeight: '600',
+    color: "#605C39",
+    fontWeight: "600",
   },
   levelIndicator: {
     width: 90,
@@ -1033,74 +1087,74 @@ const styles = StyleSheet.create({
     marginLeft: 25,
     marginTop: -30,
     marginRight: -35,
-    backgroundColor: '#F4F1EA',
+    backgroundColor: "#F4F1EA",
     borderRadius: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.14,
     shadowRadius: 8,
     elevation: 5,
   },
   levelIndicatorText: {
-    fontFamily: 'Quicksand',
+    fontFamily: "Quicksand",
     fontSize: 18,
-    color: '#53443D',
-    transform: [{ rotate: '-90deg' }],
+    color: "#53443D",
+    transform: [{ rotate: "-90deg" }],
     marginLeft: -40,
   },
   foundationIntroContainer: {
     flex: 1,
-    backgroundColor: '#AE5037',
+    backgroundColor: "#AE5037",
   },
   foundationIntroInner: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     paddingHorizontal: 40,
   },
   leveloneIndicatorText: {
-    fontFamily: 'Quicksand',
+    fontFamily: "Quicksand",
     fontSize: 30,
-    color: '#F4F1EA',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontWeight: '600',
+    color: "#F4F1EA",
+    alignItems: "center",
+    justifyContent: "center",
+    fontWeight: "600",
     marginBottom: 20,
     marginTop: -60,
   },
   foundationIntroText: {
-    fontFamily: 'Quicksand',
+    fontFamily: "Quicksand",
     fontSize: 18,
     lineHeight: 28,
-    color: '#F4F1EA',
-    textAlign: 'center',
+    color: "#F4F1EA",
+    textAlign: "center",
     maxWidth: 700,
-    justifyContent: 'center',
+    justifyContent: "center",
     marginTop: 10,
     marginBottom: 30,
   },
   foundationIntroButton: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 41,
-    backgroundColor: '#F4F1EA',
+    backgroundColor: "#F4F1EA",
     minWidth: 140,
     paddingVertical: 14,
     paddingHorizontal: 30,
     borderRadius: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
     shadowRadius: 6,
     elevation: 6,
   },
   foundationIntroButtonText: {
-    fontFamily: 'Quicksand',
+    fontFamily: "Quicksand",
     fontSize: 18,
-    color: '#AE5037',
-    fontWeight: '600',
+    color: "#AE5037",
+    fontWeight: "600",
   },
 });
