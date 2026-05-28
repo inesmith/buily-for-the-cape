@@ -132,12 +132,12 @@ export default function RoofScreen({ onNext }: RoofScreenProps) {
   }, [selectedOption]);
 
   useEffect(() => {
-    const shouldPulseClimate = !showIntroScreen && !authUnlocked && !climatePulseStopped;
-    const shouldPulseAuth = !showIntroScreen && authUnlocked && !authPulseStopped;
+    const shouldPulseAuth = !showIntroScreen && !authUnlocked && !authPulseStopped;
+    const shouldPulseClimate = !showIntroScreen && authUnlocked && !climatePulseStopped;
 
     stopWeatherPulse();
 
-    if (shouldPulseClimate || shouldPulseAuth) {
+    if (shouldPulseAuth || shouldPulseClimate) {
       weatherPulseLoopRef.current = Animated.loop(
         Animated.sequence([
           Animated.timing(weatherPulseAnim, {
@@ -178,7 +178,6 @@ export default function RoofScreen({ onNext }: RoofScreenProps) {
     setShowBuildAnimation(true);
     setShowCompletedButton(false);
     setAuthUnlocked(false);
-    setAuthPulseStopped(false);
     setShowWind(false);
     setShowTemp(false);
     setShowClimate(false);
@@ -497,107 +496,101 @@ export default function RoofScreen({ onNext }: RoofScreenProps) {
             <View style={styles.bottomRow}>
               <View style={styles.bottomWeatherIcons}>
 
-                <TouchableOpacity
-                  activeOpacity={1}
-                  onPress={() => setShowWind(!showWind)}
-                  style={styles.weatherConditionItem}
-                >
-                  <View style={styles.windButton}>
-                    <Text style={styles.windIcon}>air</Text>
-                  </View>
-
-                  {showWind && (
-                    <View style={styles.bottomWeatherExpanded}>
-                      <Text style={styles.bottomWeatherText}>
-                        Wind Durable
-                      </Text>
-                    </View>
-                  )}
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  activeOpacity={1}
-                  onPress={() => setShowTemp(!showTemp)}
-                  style={styles.weatherConditionItem}
-                >
-                  <View style={styles.tempButton}>
-                    <Text style={styles.tempIcon}>thermostat</Text>
-                  </View>
-
-                  {showTemp && (
-                    <View style={styles.bottomWeatherExpanded}>
-                      <Text style={styles.bottomWeatherText}>
-                        Temperature{'\n'}Comfort
-                      </Text>
-                    </View>
-                  )}
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  activeOpacity={1}
-                  onPress={() => {
-                    setClimatePulseStopped(true);
-                    setShowClimate(!showClimate);
-                  }}
-                  style={styles.weatherConditionItem}
-                >
-                  <Animated.View
-                    style={
-                      !authUnlocked && !climatePulseStopped
-                        ? { transform: [{ scale: weatherPulseAnim }] }
-                        : undefined
-                    }
+                <View style={styles.weatherConditionItem}>
+                  <TouchableOpacity
+                    activeOpacity={1}
+                    onPress={() => setShowTemp(!showTemp)}
                   >
-                    <View style={styles.climateButton}>
-                      <Text style={styles.climateIcon}>airwave</Text>
+                    <View style={styles.tempButton}>
+                      <Text style={styles.tempIcon}>device_thermostat</Text>
                     </View>
-                  </Animated.View>
+                  </TouchableOpacity>
 
-                  {showClimate && (
-                    <View style={styles.bottomWeatherExpanded}>
-                      <Text style={styles.bottomWeatherText}>
-                        Climate Control
-                      </Text>
+                  <Text style={styles.weatherLabel}>Temperature{'\n'}Comfort</Text>
+                </View>
+
+                <View style={styles.weatherConditionItem}>
+                  <TouchableOpacity
+                    activeOpacity={1}
+                    onPress={() => setShowWind(!showWind)}
+                  >
+                    <View style={styles.windButton}>
+                      <Text style={styles.windIcon}>air</Text>
                     </View>
-                  )}
-                </TouchableOpacity>
+                  </TouchableOpacity>
 
-                <TouchableOpacity
-                  activeOpacity={1}
-                  disabled={!authUnlocked}
-                  onPress={() => {
-                    if (authUnlocked) {
+                  <Text style={styles.weatherLabel}>Wind Durable</Text>
+                </View>
+
+                <View style={styles.weatherConditionItem}>
+                  <TouchableOpacity
+                    activeOpacity={1}
+                    onPress={() => {
                       setAuthPulseStopped(true);
                       setShowAuth(!showAuth);
-                    }
-                  }}
-                  style={styles.weatherConditionItem}
-                >
-                  <Animated.View
-                    style={
-                      authUnlocked && !authPulseStopped
-                        ? { transform: [{ scale: weatherPulseAnim }] }
-                        : undefined
-                    }
+                    }}
                   >
-                    <View
-                      style={[
-                        styles.authButton,
-                        !authUnlocked && styles.weatherButtonDisabled,
-                      ]}
+                    <Animated.View
+                      style={
+                        !authUnlocked && !authPulseStopped
+                          ? { transform: [{ scale: weatherPulseAnim }] }
+                          : undefined
+                      }
                     >
-                      <Text style={styles.authIcon}>verified</Text>
-                    </View>
-                  </Animated.View>
+                      <View style={styles.authButton}>
+                        <Text style={styles.authIcon}>verified</Text>
+                      </View>
+                    </Animated.View>
+                  </TouchableOpacity>
 
-                  {showAuth && authUnlocked && (
-                    <View style={styles.bottomWeatherExpanded}>
-                      <Text style={styles.bottomWeatherText}>
-                        Authenticity {'\n'}Check
-                      </Text>
-                    </View>
-                  )}
-                </TouchableOpacity>
+                  <Text style={styles.weatherLabel}>Authenticity{'\n'}Check</Text>
+                </View>
+
+                <View style={styles.weatherConditionItem}>
+                  <TouchableOpacity
+                    activeOpacity={1}
+                    disabled={!authUnlocked}
+                    onPress={() => {
+                      if (authUnlocked) {
+                        setClimatePulseStopped(true);
+                        setShowClimate(!showClimate);
+                      }
+                    }}
+                  >
+                    <Animated.View
+                      style={
+                        authUnlocked && !climatePulseStopped
+                          ? { transform: [{ scale: weatherPulseAnim }] }
+                          : undefined
+                      }
+                    >
+                      <View
+                        style={[
+                          styles.climateButton,
+                          !authUnlocked && styles.weatherButtonDisabled,
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.climateIcon,
+                            !authUnlocked && styles.weatherLockIcon,
+                          ]}
+                        >
+                          {authUnlocked ? 'mode_dual' : 'lock'}
+                        </Text>
+                      </View>
+                    </Animated.View>
+                  </TouchableOpacity>
+
+                  <Text
+                    style={[
+                      styles.weatherLabel,
+                      !authUnlocked && styles.weatherLabelDisabled,
+                    ]}
+                  >
+                    {authUnlocked ? `Climate Control` : 'Not Reached'}
+                  </Text>
+                </View>
               </View>
             </View>
           </View>
@@ -756,7 +749,7 @@ canvas: {
   },
   bottomRow: {
     position: 'absolute',
-    top: 10,
+    top: -30,
     right: 30,
 
     flexDirection: 'column',
@@ -769,7 +762,7 @@ canvas: {
   bottomWeatherIcons: {
     flexDirection: 'column',
     alignItems: 'center',
-    gap: 15,
+    gap: 12,
     marginBottom: -25,
     marginLeft: 140,
     shadowColor: '#000',
@@ -801,6 +794,21 @@ canvas: {
     color: '#F4F1EA',
     fontFamily: 'Quicksand',
     fontSize: 13,
+  },
+  weatherLabel: {
+    marginTop: 4,
+    fontFamily: 'Quicksand',
+    fontSize: 9,
+    lineHeight: 10,
+    color: '#605C39',
+    textAlign: 'center',
+    fontWeight: '600',
+  },
+  weatherLockIcon: {
+    color: '#5b5b5b',
+  },
+  weatherLabelDisabled: {
+    color: '#242424',
   },
   hintButton: {
     width: 50,
@@ -837,9 +845,9 @@ canvas: {
     fontFamily: 'Quicksand',
     fontSize: 12,
     color: '#AE5037',
-    paddingLeft: 100,
+    paddingLeft: 55,
     paddingRight: 24,
-    marginTop: 13,
+    marginTop: 10,
     fontWeight: '500',
   },
   hintWrapper: {
@@ -1106,7 +1114,12 @@ canvas: {
     elevation: 5,
   },
   weatherButtonDisabled: {
-    backgroundColor: '#605c3983',
+    backgroundColor: 'rgba(141, 141, 141, 0.16)',
+    borderWidth: 1.5,
+    borderColor: '#8D8D8D',
+    borderStyle: 'dashed',
+    shadowOpacity: 0,
+    elevation: 0,
   },
   windIcon: {
     fontFamily: 'MaterialSymbolsOutlined',

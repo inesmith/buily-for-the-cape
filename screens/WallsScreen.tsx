@@ -70,8 +70,8 @@ export default function WallsScreen({ onNext }: WallsScreenProps) {
   const tempPulseAnim = useRef(new Animated.Value(1)).current;
   const windPulseLoopRef = useRef<Animated.CompositeAnimation | null>(null);
   const tempPulseLoopRef = useRef<Animated.CompositeAnimation | null>(null);
-  const [windPulseActive, setWindPulseActive] = useState(true);
-  const [tempPulseActive, setTempPulseActive] = useState(false);
+  const [windPulseActive, setWindPulseActive] = useState(false);
+  const [tempPulseActive, setTempPulseActive] = useState(true);
   const buildTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const crackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const countdownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -168,7 +168,7 @@ export default function WallsScreen({ onNext }: WallsScreenProps) {
   useEffect(() => {
     tempPulseLoopRef.current?.stop();
 
-    if (tempPulseActive && weatherUnlocked) {
+    if (tempPulseActive) {
       tempPulseLoopRef.current = Animated.loop(
         Animated.sequence([
           Animated.timing(tempPulseAnim, {
@@ -192,7 +192,7 @@ export default function WallsScreen({ onNext }: WallsScreenProps) {
     return () => {
       tempPulseLoopRef.current?.stop();
     };
-  }, [tempPulseActive, weatherUnlocked]);
+  }, [tempPulseActive]);
 
   const handleOptionSelect = (optionId: string) => {
     clearAllTimers();
@@ -222,8 +222,8 @@ export default function WallsScreen({ onNext }: WallsScreenProps) {
 
       if (optionId === correctAnswer) {
         setWeatherUnlocked(true);
-        setWindPulseActive(false);
-        setTempPulseActive(true);
+        setWindPulseActive(true);
+        setTempPulseActive(false);
 
         successTimeoutRef.current = setTimeout(() => {
           setShowCompletedButton(true);
@@ -513,89 +513,107 @@ export default function WallsScreen({ onNext }: WallsScreenProps) {
                 <View style={styles.bottomWeatherIcons}>
                   <Animated.View
                     style={{
-                      transform: [{ scale: windPulseAnim }],
+                      transform: [{ scale: tempPulseAnim }],
                     }}
                   >
-                    <TouchableOpacity
-                      activeOpacity={1}
-                      onPress={() => {
-                        stopWindPulse();
-                        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-                        setShowWind(!showWind);
-                        setShowTemp(false);
-                        setShowClimate(false);
-                        setShowAuth(false);
-                      }}
-                      style={styles.weatherConditionItem}
-                    >
-                      <View style={styles.windButton}>
-                        <Text style={styles.windIcon}>air</Text>
-                      </View>
-
-                      {showWind && (
-                        <View style={styles.bottomWeatherExpanded}>
-                          <Text style={styles.bottomWeatherText}>Wind Durable</Text>
-                        </View>
-                      )}
-                    </TouchableOpacity>
-                  </Animated.View>
-
-                  <Animated.View
-                    style={{
-                      transform: [{ scale: weatherUnlocked ? tempPulseAnim : 1 }],
-                    }}
-                  >
-                    <TouchableOpacity
-                      activeOpacity={1}
-                      disabled={!weatherUnlocked}
-                      onPress={() => {
-                        if (weatherUnlocked) {
+                    <View style={styles.weatherConditionItem}>
+                      <TouchableOpacity
+                        activeOpacity={1}
+                        onPress={() => {
                           stopTempPulse();
                           LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
                           setShowTemp(!showTemp);
                           setShowWind(false);
                           setShowClimate(false);
                           setShowAuth(false);
-                        }
-                      }}
-                      style={styles.weatherConditionItem}
-                    >
-                      <View
-                        style={[
-                          styles.tempButton,
-                          !weatherUnlocked && styles.weatherButtonDisabled,
-                        ]}
+                        }}
                       >
-                        <Text style={styles.tempIcon}>device_thermostat</Text>
-                      </View>
-
-                      {showTemp && weatherUnlocked && (
-                        <View style={styles.bottomWeatherExpanded}>
-                          <Text style={styles.bottomWeatherText}>Temperature{'\n'}Comfort</Text>
+                        <View style={styles.tempButton}>
+                          <Text style={styles.tempIcon}>device_thermostat</Text>
                         </View>
-                      )}
-                    </TouchableOpacity>
+                      </TouchableOpacity>
+
+                      <Text style={styles.weatherLabel}>Temperature{'\n'}Comfort</Text>
+                    </View>
                   </Animated.View>
 
-                  <TouchableOpacity
-                    activeOpacity={1}
-                    disabled
-                    style={styles.weatherConditionItem}
+                  <Animated.View
+                    style={{
+                      transform: [{ scale: weatherUnlocked ? windPulseAnim : 1 }],
+                    }}
                   >
-                    <View style={[styles.climateButton, styles.weatherButtonDisabled]}>
-                      <Text style={styles.climateIcon}>airwave</Text>
-                    </View>
-                  </TouchableOpacity>
+                    <View style={styles.weatherConditionItem}>
+                      <TouchableOpacity
+                        activeOpacity={1}
+                        disabled={!weatherUnlocked}
+                        onPress={() => {
+                          if (weatherUnlocked) {
+                            stopWindPulse();
+                            LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+                            setShowWind(!showWind);
+                            setShowTemp(false);
+                            setShowClimate(false);
+                            setShowAuth(false);
+                          }
+                        }}
+                      >
+                        <View
+                          style={[
+                            styles.windButton,
+                            !weatherUnlocked && styles.weatherButtonDisabled,
+                          ]}
+                        >
+                          <Text
+                            style={[
+                              styles.windIcon,
+                              !weatherUnlocked && styles.weatherLockIcon,
+                            ]}
+                          >
+                            {weatherUnlocked ? 'air' : 'lock'}
+                          </Text>
+                        </View>
+                      </TouchableOpacity>
 
-                  <TouchableOpacity
-                    activeOpacity={1}
-                    disabled
-                    style={styles.weatherConditionItem}
-                  >
-                    <View style={[styles.authButton, styles.weatherButtonDisabled]}>
-                      <Text style={styles.authIcon}>verified</Text>
+                      <Text
+                        style={[
+                          styles.weatherLabel,
+                          !weatherUnlocked && styles.weatherLabelDisabled,
+                        ]}
+                      >
+                        {weatherUnlocked ? 'Wind Durable' : 'Not Reached'}
+                      </Text>
                     </View>
-                  </TouchableOpacity>
+                  </Animated.View>
+
+                  <View style={styles.weatherConditionItem}>
+                    <TouchableOpacity
+                      activeOpacity={1}
+                      disabled
+                    >
+                      <View style={[styles.authButton, styles.weatherButtonDisabled]}>
+                        <Text style={[styles.authIcon, styles.weatherLockIcon]}>lock</Text>
+                      </View>
+                    </TouchableOpacity>
+
+                    <Text style={[styles.weatherLabel, styles.weatherLabelDisabled]}>
+                      Not Reached
+                    </Text>
+                  </View>
+
+                  <View style={styles.weatherConditionItem}>
+                    <TouchableOpacity
+                      activeOpacity={1}
+                      disabled
+                    >
+                      <View style={[styles.climateButton, styles.weatherButtonDisabled]}>
+                        <Text style={[styles.climateIcon, styles.weatherLockIcon]}>lock</Text>
+                      </View>
+                    </TouchableOpacity>
+
+                    <Text style={[styles.weatherLabel, styles.weatherLabelDisabled]}>
+                      Not Reached
+                    </Text>
+                  </View>
                 </View>
               </View>
             </View>
@@ -806,9 +824,9 @@ const styles = StyleSheet.create({
     fontFamily: 'Quicksand',
     fontSize: 12,
     color: '#AE5037',
-    paddingLeft: 100,
+    paddingLeft: 55,
     paddingRight: 24,
-    marginTop: 13,
+    marginTop: 10,
     fontWeight: '500',
   },
   hintWrapper: {
@@ -853,21 +871,21 @@ const styles = StyleSheet.create({
     color: '#53443D',
   },
   bottomRow: {
-  position: 'absolute',
-  top: 10,
-  right: 30,
+    position: 'absolute',
+    top: -30,
+    right: 30,
 
-  flexDirection: 'column',
-  alignItems: 'center',
-  justifyContent: 'flex-start',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
 
-  zIndex: 999,
-  elevation: 999,
+    zIndex: 999,
+    elevation: 999,
   },
   bottomWeatherIcons: {
     flexDirection: 'column',
     alignItems: 'center',
-    gap: 15,
+    gap: 12,
     marginBottom: -25,
     marginLeft: 140,
         shadowColor: '#000',
@@ -899,6 +917,21 @@ const styles = StyleSheet.create({
     color: '#F4F1EA',
     fontFamily: 'Quicksand',
     fontSize: 13,
+  },
+  weatherLabel: {
+    marginTop: 4,
+    fontFamily: 'Quicksand',
+    fontSize: 9,
+    lineHeight: 10,
+    color: '#605C39',
+    textAlign: 'center',
+    fontWeight: '600',
+  },
+  weatherLockIcon: {
+    color: '#5b5b5b',
+  },
+  weatherLabelDisabled: {
+    color: '#242424',
   },
   windButton: {
     width: 50,
@@ -953,7 +986,12 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   weatherButtonDisabled: {
-    backgroundColor: '#605c3983',
+    backgroundColor: 'rgba(141, 141, 141, 0.16)',
+    borderWidth: 1.5,
+    borderColor: '#8D8D8D',
+    borderStyle: 'dashed',
+    shadowOpacity: 0,
+    elevation: 0,
   },
   windIcon: {
     fontFamily: 'MaterialSymbolsOutlined',
@@ -974,6 +1012,9 @@ const styles = StyleSheet.create({
     fontFamily: 'MaterialSymbolsOutlined',
     fontSize: 28,
     color: '#F4F1EA',
+  },
+  weatherIconDisabled: {
+    color: '#8D8D8D',
   },
   wallWrapper: {
     flex: 1,

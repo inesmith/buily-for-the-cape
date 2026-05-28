@@ -461,14 +461,19 @@ export default function FoundationScreen({ onNext }: FoundationScreenProps) {
                         !weatherUnlocked && styles.weatherButtonDisabled,
                       ]}
                     >
-                      <Text style={styles.windIcon}>air</Text>
+                      <Text style={weatherUnlocked ? styles.windIcon : styles.weatherLockIcon}>
+                        {weatherUnlocked ? 'air' : 'lock'}
+                      </Text>
                     </View>
 
-                    {showWind && weatherUnlocked && (
-                      <View style={styles.bottomWeatherExpanded}>
-                        <Text style={styles.bottomWeatherText}>Wind Durable</Text>
-                      </View>
-                    )}
+                    <Text
+                      style={[
+                        styles.weatherLabel,
+                        !weatherUnlocked && styles.weatherLabelLocked,
+                      ]}
+                    >
+                      {weatherUnlocked ? 'Wind Durable' : 'Not Reached'}
+                    </Text>
                   </TouchableOpacity>
                   </Animated.View>
 
@@ -478,8 +483,12 @@ export default function FoundationScreen({ onNext }: FoundationScreenProps) {
                     style={styles.weatherConditionItem}
                   >
                     <View style={[styles.tempButton, styles.weatherButtonDisabled]}>
-                      <Text style={styles.tempIcon}>device_thermostat</Text>
+                      <Text style={styles.weatherLockIcon}>lock</Text>
                     </View>
+
+                    <Text style={[styles.weatherLabel, styles.weatherLabelLocked]}>
+                      Not Reached
+                    </Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity
@@ -488,8 +497,12 @@ export default function FoundationScreen({ onNext }: FoundationScreenProps) {
                     style={styles.weatherConditionItem}
                   >
                     <View style={[styles.climateButton, styles.weatherButtonDisabled]}>
-                      <Text style={styles.climateIcon}>airwave</Text>
+                      <Text style={styles.weatherLockIcon}>lock</Text>
                     </View>
+
+                    <Text style={[styles.weatherLabel, styles.weatherLabelLocked]}>
+                      Not Reached
+                    </Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity
@@ -498,8 +511,12 @@ export default function FoundationScreen({ onNext }: FoundationScreenProps) {
                     style={styles.weatherConditionItem}
                   >
                     <View style={[styles.authButton, styles.weatherButtonDisabled]}>
-                      <Text style={styles.authIcon}>verified</Text>
+                      <Text style={styles.weatherLockIcon}>lock</Text>
                     </View>
+
+                    <Text style={[styles.weatherLabel, styles.weatherLabelLocked]}>
+                      Not Reached
+                    </Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -669,9 +686,9 @@ const styles = StyleSheet.create({
     fontFamily: 'Quicksand',
     fontSize: 12,
     color: '#AE5037',
-    paddingLeft: 100,
+    paddingLeft: 55,
     paddingRight: 24,
-    marginTop: 13,
+    marginTop: 10,
     fontWeight: '500',
   },
   hintWrapper: {
@@ -716,24 +733,24 @@ const styles = StyleSheet.create({
     color: '#53443D',
   },
   bottomRow: {
-  position: 'absolute',
-  top: 10,
-  right: 30,
+    position: 'absolute',
+    top: -30,
+    right: 30,
 
-  flexDirection: 'column',
-  alignItems: 'center',
-  justifyContent: 'flex-start',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
 
-  zIndex: 999,
-  elevation: 999,
+    zIndex: 999,
+    elevation: 999,
   },
   bottomWeatherIcons: {
     flexDirection: 'column',
     alignItems: 'center',
-    gap: 15,
+    gap: 12,
     marginBottom: -25,
     marginLeft: 140,
-        shadowColor: '#000',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.14,
     shadowRadius: 8,
@@ -762,6 +779,27 @@ const styles = StyleSheet.create({
     color: '#F4F1EA',
     fontFamily: 'Quicksand',
     fontSize: 13,
+  },
+  weatherLabel: {
+    color: '#605C39',
+    fontFamily: 'Quicksand',
+    fontSize: 10,
+    textAlign: 'center',
+    marginTop: 4,
+    maxWidth: 72,
+        shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.14,
+    shadowRadius: 6,
+    elevation: 5,
+  },
+  weatherLabelLocked: {
+    color: '#242424',
+        shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.14,
+    shadowRadius: 6,
+    elevation: 5,
   },
   windButton: {
     width: 50,
@@ -820,7 +858,12 @@ const styles = StyleSheet.create({
     marginBottom: 0,
   },
   weatherButtonDisabled: {
-    backgroundColor: '#999999',
+    backgroundColor: 'rgba(141, 141, 141, 0.16)',
+    borderWidth: 1.5,
+    borderColor: '#8D8D8D',
+    borderStyle: 'dashed',
+    shadowOpacity: 0,
+    elevation: 0,
   },
   windIcon: {
     fontFamily: 'MaterialSymbolsOutlined',
@@ -841,6 +884,11 @@ const styles = StyleSheet.create({
     fontFamily: 'MaterialSymbolsOutlined',
     fontSize: 28,
     color: '#F4F1EA',
+  },
+  weatherLockIcon: {
+    fontFamily: 'MaterialSymbolsOutlined',
+    fontSize: 27,
+    color: '#5b5b5b',
   },
   roofWrapper: {
     flex: 1,

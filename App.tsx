@@ -49,7 +49,7 @@ export default function App() {
       return <RoofScreen onNext={() => setCurrentScreen('last')} />;
 
     case 'last':
-      return <LastLevelScreen onNext={() => setCurrentScreen('completed')} />;
+      return <LastLevelScreen onNext={() => setCurrentScreen('home')} />;
 
 
     default:

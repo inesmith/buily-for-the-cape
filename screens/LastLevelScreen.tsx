@@ -208,28 +208,6 @@ export default function LastLevelScreen({ onNext }: LastLevelScreenProps) {
               activeOpacity={1}
               onPress={() => {
                 LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-                setShowWind(!showWind);
-                setShowTemp(false);
-                setShowClimate(false);
-                setShowAuth(false);
-              }}
-              style={styles.weatherConditionItem}
-            >
-              <View style={styles.windButton}>
-                <Text style={styles.windIcon}>air</Text>
-              </View>
-
-              {showWind && (
-                <View style={styles.bottomWeatherExpanded}>
-                  <Text style={styles.bottomWeatherText}>Wind Durable</Text>
-                </View>
-              )}
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              activeOpacity={1}
-              onPress={() => {
-                LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
                 setShowTemp(!showTemp);
                 setShowWind(false);
                 setShowClimate(false);
@@ -252,20 +230,20 @@ export default function LastLevelScreen({ onNext }: LastLevelScreenProps) {
               activeOpacity={1}
               onPress={() => {
                 LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-                setShowClimate(!showClimate);
-                setShowWind(false);
+                setShowWind(!showWind);
                 setShowTemp(false);
+                setShowClimate(false);
                 setShowAuth(false);
               }}
               style={styles.weatherConditionItem}
             >
-              <View style={styles.climateButton}>
-                <Text style={styles.climateIcon}>airwave</Text>
+              <View style={styles.windButton}>
+                <Text style={styles.windIcon}>air</Text>
               </View>
 
-              {showClimate && (
+              {showWind && (
                 <View style={styles.bottomWeatherExpanded}>
-                  <Text style={styles.bottomWeatherText}>Climate Control</Text>
+                  <Text style={styles.bottomWeatherText}>Wind Durable</Text>
                 </View>
               )}
             </TouchableOpacity>
@@ -292,6 +270,27 @@ export default function LastLevelScreen({ onNext }: LastLevelScreenProps) {
               )}
             </TouchableOpacity>
 
+            <TouchableOpacity
+              activeOpacity={1}
+              onPress={() => {
+                LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+                setShowClimate(!showClimate);
+                setShowWind(false);
+                setShowTemp(false);
+                setShowAuth(false);
+              }}
+              style={styles.weatherConditionItem}
+            >
+              <View style={styles.climateButton}>
+                <Text style={styles.climateIcon}>airwave</Text>
+              </View>
+
+              {showClimate && (
+                <View style={styles.bottomWeatherExpanded}>
+                  <Text style={styles.bottomWeatherText}>Climate Control</Text>
+                </View>
+              )}
+            </TouchableOpacity>
           </View>
 
           <TouchableOpacity onPress={() => setShowVoucherScreen(true)}>
@@ -795,7 +794,7 @@ bottomWeatherIcons: {
   alignItems: 'center',
   gap: 15,
   marginBottom: -25,
-  marginLeft: 40,
+  marginLeft: 30,
 },
 
 weatherConditionItem: {
