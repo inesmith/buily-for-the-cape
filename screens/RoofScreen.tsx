@@ -42,9 +42,9 @@ const roofOptions = [
 ];
 
 const correctAnswer = 'thatched';
-const BUILD_ANIMATION_DURATION = 5000;
+const BUILD_ANIMATION_DURATION = 2800;
 const FAILURE_TIMER_SECONDS = 3;
-const SUCCESS_DELAY = 1800;
+const SUCCESS_DELAY = 800;
 
 export default function RoofScreen({ onNext }: RoofScreenProps) {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
@@ -198,7 +198,7 @@ export default function RoofScreen({ onNext }: RoofScreenProps) {
 
           successTimeoutRef.current = setTimeout(() => {
             setShowSuccessScreen(true);
-          }, 1200);
+          }, 800);
         }, SUCCESS_DELAY);
       }
 
@@ -223,7 +223,7 @@ export default function RoofScreen({ onNext }: RoofScreenProps) {
           setShowCrackedRoof(true);
           setShouldPulseHint(true);
           setCountdown(null);
-        }, FAILURE_TIMER_SECONDS * 1000);
+        }, FAILURE_TIMER_SECONDS * 800);
       }
     }, BUILD_ANIMATION_DURATION);
   };
@@ -480,7 +480,7 @@ export default function RoofScreen({ onNext }: RoofScreenProps) {
                   source={require('../assets/Hammer animation.json')}
                   autoPlay
                   loop={true}
-                  speed={0.8}
+                  speed={1.3}
                   colorFilters={[
                     {
                       keypath: 'Shape Layer 1',

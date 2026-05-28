@@ -42,9 +42,9 @@ const windowOptions = [
 ];
 
 const correctAnswer = "wooden-frames";
-const BUILD_ANIMATION_DURATION = 5000;
+const BUILD_ANIMATION_DURATION = 2800;
 const FAILURE_TIMER_SECONDS = 3;
-const SUCCESS_DELAY = 1800;
+const SUCCESS_DELAY = 800;
 
 export default function WindowsScreen({ onNext }: WindowsScreenProps) {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
@@ -184,7 +184,7 @@ export default function WindowsScreen({ onNext }: WindowsScreenProps) {
 
           successTimeoutRef.current = setTimeout(() => {
             setShowSuccessScreen(true);
-          }, 1200);
+          }, 800);
         }, SUCCESS_DELAY);
       }
 
@@ -209,7 +209,7 @@ export default function WindowsScreen({ onNext }: WindowsScreenProps) {
           setShowCrackedWindow(true);
           setShouldPulseHint(true);
           setCountdown(null);
-        }, FAILURE_TIMER_SECONDS * 1000);
+        }, FAILURE_TIMER_SECONDS * 300);
       }
     }, BUILD_ANIMATION_DURATION);
   };
@@ -471,7 +471,7 @@ export default function WindowsScreen({ onNext }: WindowsScreenProps) {
                     source={require("../assets/Hammer animation.json")}
                     autoPlay
                     loop={true}
-                    speed={0.8}
+                    speed={1.3}
                     colorFilters={[
                       {
                         keypath: "Shape Layer 1",
