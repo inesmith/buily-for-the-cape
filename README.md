@@ -24,6 +24,7 @@
 ![TypeScript](https://img.shields.io/badge/TypeScript-Language-3F3A25?style=for-the-badge)
 ![Landscape](https://img.shields.io/badge/Orientation-Landscape-605C39?style=for-the-badge)
 
+
 </div>
 
 ---
@@ -196,14 +197,14 @@ Before running the project, ensure that the following are installed:
 - Node.js
 - npm
 - Expo CLI
-- Xcode (macOS)
+- Visual Studio Code (VS Code)
 
 ---
 
 ## Clone Repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/cape-origins.git
+git clone https://github.com/inesmith/cape-origins.git
 ```
 
 ---
@@ -232,47 +233,94 @@ npx expo start
 
 ---
 
-# Running on iPhone 16 Pro Max Simulator
+# Running the Application
 
-Cape Origins was designed and tested primarily on the **iPhone 16 Pro Max Simulator**.
+Cape Origins was developed using Visual Studio Code, React Native, Expo, and TypeScript.
 
-## Install Xcode
+## Device Testing Notes
 
-Download and install Xcode from the App Store.
+Cape Origins was designed and tested primarily on an iPhone 16 Pro Max device and simulator.
 
-Open:
+The application has been developed using responsive React Native layouts; however, final testing and optimisation focused on the target device used throughout development. Additional responsiveness refinements for other screen sizes and aspect ratios may be implemented in future iterations.
 
-```text
-Xcode → Settings → Components
+## Open the Project
+
+Open the project folder in Visual Studio Code:
+
+```bash
+code .
 ```
 
-Download the latest available iOS Simulator Runtime.
+## Start the Development Server
 
----
-
-## Open Simulator
-
-Launch the simulator via:
-
-```text
-Xcode → Open Developer Tool → Simulator
+```bash
+npx expo start
 ```
 
-or simply press:
+This will launch the Expo development server.
+
+## Run the Application
+
+The application can be run using:
+
+- Expo Go on a physical device by scanning the QR code displayed in the terminal.
+- The iOS Simulator (macOS only) by pressing:
 
 ```text
 i
 ```
 
+- An Android Emulator by pressing:
+
+```text
+a
+```
+
 inside the Expo terminal.
+
+## Tested Environment
+
+- Visual Studio Code
+- React Native
+- Expo
+- TypeScript
+- iPhone 16 Pro Max
+- iPhone 16 Pro Max Simulator
 
 ---
 
-## Run on iPhone 16 Pro Max
+## Using the iOS Simulator (macOS)
+
+To run Cape Origins in the iOS Simulator:
+
+1. Ensure Xcode is installed from the App Store.
+2. Open the Simulator:
+
+```text
+Xcode → Open Developer Tool → Simulator
+```
+
+3. Start the Expo development server:
+
+```bash
+npx expo start
+```
+
+4. Press:
+
+```text
+i
+```
+
+inside the Expo terminal to launch the application in the iOS Simulator.
+
+Alternatively, you can run:
 
 ```bash
 npx expo run:ios --simulator="iPhone 16 Pro Max"
 ```
+
+to launch the application directly on the iPhone 16 Pro Max Simulator.
 
 ---
 
@@ -333,7 +381,7 @@ A complete walkthrough of Cape Origins can be viewed below:
 
 ### Video Link
 
-🔗 **[Insert YouTube or Vimeo Link Here]**
+🔗 **[[Youtube Demo Video Link](https://youtu.be/WGuneViY1ks?si=4R6bdOv9K2q1BJuz)]**
 
 ---
 
