@@ -206,6 +206,14 @@ export default function WindowsScreen({ onNext }: WindowsScreenProps) {
 
         crackTimeoutRef.current = setTimeout(() => {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+          
+                      setTimeout(() => {
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+                      }, 120);
+          
+                      setTimeout(() => {
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+                      }, 240);
           setShowCrackedWindow(true);
           setShouldPulseHint(true);
           setCountdown(null);

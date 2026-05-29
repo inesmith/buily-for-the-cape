@@ -20,18 +20,16 @@ type ScreenName =
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<ScreenName>('splash');
 
+  const handleContinue = async () => {
+    await ScreenOrientation.lockAsync(
+      ScreenOrientation.OrientationLock.LANDSCAPE
+    );
+    setCurrentScreen('home');
+  };
+
   switch (currentScreen) {
     case 'splash':
-      return (
-        <SplashScreen
-          onContinue={async () => {
-            await ScreenOrientation.lockAsync(
-              ScreenOrientation.OrientationLock.LANDSCAPE
-            );
-            setCurrentScreen('home');
-          }}
-        />
-      );
+      return <SplashScreen onContinue={handleContinue} />;
 
     case 'home':
       return <HomeScreen onStart={() => setCurrentScreen('foundation')} />;
@@ -51,17 +49,7 @@ export default function App() {
     case 'last':
       return <LastLevelScreen onNext={() => setCurrentScreen('home')} />;
 
-
     default:
-        return (
-          <SplashScreen
-            onContinue={async () => {
-              await ScreenOrientation.lockAsync(
-                ScreenOrientation.OrientationLock.LANDSCAPE
-          );
-          setCurrentScreen('home');
-        }}
-      />
-    );
+      return <SplashScreen onContinue={handleContinue} />;
   }
 }

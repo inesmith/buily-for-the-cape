@@ -219,10 +219,18 @@ export default function RoofScreen({ onNext }: RoofScreenProps) {
 
         crackTimeoutRef.current = setTimeout(() => {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+          
+                      setTimeout(() => {
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+                      }, 120);
+          
+                      setTimeout(() => {
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+                      }, 240);
           setShowCrackedRoof(true);
           setShouldPulseHint(true);
           setCountdown(null);
-        }, FAILURE_TIMER_SECONDS * 800);
+        }, FAILURE_TIMER_SECONDS * 300);
       }
     }, BUILD_ANIMATION_DURATION);
   };

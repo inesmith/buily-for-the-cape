@@ -193,6 +193,14 @@ export default function FoundationScreen({ onNext }: FoundationScreenProps) {
 
         crackTimeoutRef.current = setTimeout(() => {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+
+            setTimeout(() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+            }, 120);
+
+            setTimeout(() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+            }, 240);
           setShowCrackedFoundation(true);
           setShouldPulseHint(true);
           setCountdown(null);

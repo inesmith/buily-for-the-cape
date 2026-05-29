@@ -252,6 +252,14 @@ export default function WallsScreen({ onNext }: WallsScreenProps) {
 
         crackTimeoutRef.current = setTimeout(() => {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+          
+                      setTimeout(() => {
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+                      }, 120);
+          
+                      setTimeout(() => {
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+                      }, 240);
           setShowCrackedWall(true);
           setShouldPulseHint(true);
           setCountdown(null);
