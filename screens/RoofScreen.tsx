@@ -588,7 +588,7 @@ export default function RoofScreen({ onNext }: RoofScreenProps) {
                       !authUnlocked && styles.weatherLabelDisabled,
                     ]}
                   >
-                    {authUnlocked ? `Climate Control` : 'Not Reached'}
+                    {authUnlocked ? `Climate\nControl` : 'Not Reached'}
                   </Text>
                 </View>
               </View>
